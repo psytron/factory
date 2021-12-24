@@ -5,6 +5,11 @@ Wrapper around Range https://developer.mozilla.org/en-US/docs/Web/API/Range and
 * No Compiling 
 * No Dependencies
 
+## Factory 2D Usage
+#### Factory2D: How it works Point your library to regular working HTML chunks 
+[ neste.html , box.html ,  wut.html ]
+
+
 ```javascript
 
 import factory2d from './factory/factory.js';
