@@ -7,13 +7,11 @@ Wrapper around Range https://developer.mozilla.org/en-US/docs/Web/API/Range and
 
 ```javascript
 
-import factory2d from './factory';
+import factory2d from './factory/factory.js';
 
-
-factory.loadSync( 
-  ['html','html','html']
-  )
-  
+await factory2d.loadAll( 
+    ['multiple.html',
+     'single.html'])
 
 let v_node = factory.renderNodeSync(  'template_id' , data_object ); 
 
