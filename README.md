@@ -4,6 +4,8 @@ Wrapper around Range https://developer.mozilla.org/en-US/docs/Web/API/Range and
 * No Server 
 * No Compiling 
 * No Dependencies
+* No Handlebars 
+
 
 ## Factory 2D Usage
 #### Factory2D: How it works Point your library to regular working HTML chunks 
