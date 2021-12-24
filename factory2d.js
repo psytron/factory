@@ -1,5 +1,5 @@
                 
-
+// qcom
 
 function Factory2d() {
 
