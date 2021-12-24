@@ -15,9 +15,7 @@ Wrapper around Range https://developer.mozilla.org/en-US/docs/Web/API/Range and
 import factory2d from './factory/factory.js';
 
 // LOAD REGULAR WORKING HTML
-await factory2d.loadAll( 
-    ['multiple.html',
-     'single.html'])
+await factory2d.loadAll( ['multiple.html','single.html'] );
 
 // RENDER TEMPLATE WITH DATA
 let v_node = factory.renderNodeSync(  'template_id' , data_object ); 
