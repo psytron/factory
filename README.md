@@ -1,5 +1,9 @@
-# Factory2D and Factory3D
-Wrapper around Range https://developer.mozilla.org/en-US/docs/Web/API/Range and 
+# Factory
+Factory is a simple wrapper for standard browser functionality <br>
+https://developer.mozilla.org/en-US/docs/Web/API/Range
+<br>
+https://developer.mozilla.org/en-US/docs/Web/API/DOMParser
+<br>
 
 * No Server 
 * No Compiling 
