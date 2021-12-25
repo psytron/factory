@@ -7,28 +7,27 @@ Wrapper around Range https://developer.mozilla.org/en-US/docs/Web/API/Range and
 * No Handlebars 
 
 
-## Factory 2D Usage
-#### Factory2D: How it works Point your library to regular working HTML chunks 
+### Install
+```shell
+npm install https://github.com/psytron/factory
+```
+
+### Usage
+### How it works: Point your library to regular working HTML chunks 
 [ neste.html , box.html ,  wut.html ]
 
 
 ```javascript
-
+// Cache Templates
 import factory2d from './factory/factory.js';
-
-// LOAD REGULAR WORKING HTML
 await factory2d.loadAll( ['multiple.html','single.html'] );
 
-// RENDER TEMPLATE WITH DATA
+// Render and Inject
 let v_node = factory.renderNodeSync(  'template_id' , data_object ); 
 
-// Vanilla Javascript 
+// Vanilla Javascript or Auto
 v_node.querySelector("#regular_id")
-
-// Glue Style , spider and id match insert 
 v_node.push(  data_object ) 
-
-
 ```
 
 
