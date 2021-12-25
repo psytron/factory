@@ -1,5 +1,5 @@
 # Factory
-Factory is a simple wrapper for standard browser functionality <br>
+Factory is a simple Promise based async wrapper for underutilized standard browser functionality like Range, DOMParser, and CloneNode. This project can be used independently or as part of ecosystem aimed at promoting run-time editing and flexible modular development not constrained by overbuilt kitchen sink frameworks and also cater to Vanilla JS afficionados. <br>
 https://developer.mozilla.org/en-US/docs/Web/API/Range
 <br>
 https://developer.mozilla.org/en-US/docs/Web/API/DOMParser
