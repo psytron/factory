@@ -32,3 +32,20 @@ v_node.push(  data_object )
 ```
 
 
+## Plain HTML 
+Factory doesn't use compilers, delimeters, any special syntax. Everything is just plain HTML that works directly in any browser.
+```html
+<body>    
+    <style>
+        .feature_slide{
+            color:#333333;
+        }
+    </style>
+    <div id="features">
+        <div id="slide3" class="feature_slide">
+            <h3>Private</h3>
+            <p>Enables control.</p>            
+        </div>        
+    </div>
+</body>
+```

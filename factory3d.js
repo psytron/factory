@@ -1,6 +1,6 @@
 import * as THREE from '../../web_modules/three.js'
 import { GLTFLoader } from '../../web_modules/three/examples/jsm/loaders/GLTFLoader.js'
-import { XCOLORS } from '../../x_modules/xcolors.js'
+import { XCOLORS } from '../xcolors.js'
 
 ////// ELEMENT FACTORY ////
 function Factory3d() {
