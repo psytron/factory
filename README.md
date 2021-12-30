@@ -3,7 +3,7 @@ Factory combines standard
 [Range Object](https://developer.mozilla.org/en-US/docs/Web/API/Range),
 [DOMParser](https://developer.mozilla.org/en-US/docs/Web/API/DOMParser),
 [CloneNode](https://developer.mozilla.org/en-US/docs/Web/API/Node) and
-[Service Worker](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API), into async Promise capable rendering utility for your apps. It can be used independently or as part of EL-X. These tools are aimed at promoting run-time editing, and greenfield development outside of constrains imposed by more inclusive frameworks. <br>
+[Service Worker](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API), into async Promise capable rendering utility for your apps. It can be used independently or as part of EL-X. These tools are aimed at promoting run-time editing, and greenfield development. <br>
 
 <br>
 
