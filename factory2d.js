@@ -118,6 +118,7 @@ function Factory2d() {
         }else{
             var rendered_html = this.renderSync( tmp_id , data_in ) 
             var domfrag = document.createRange().createContextualFragment( rendered_html );
+            //var domfrag = document.createContextualFragment( rendered_html );
             this.vcache[ tmp_id ]= domfrag.firstElementChild; // Cache app UI
             return this.vcache[ tmp_id ].cloneNode(true);
         }
@@ -134,7 +135,7 @@ function Factory2d() {
         var rendered_html = this.renderSync( tmp_id , data_in )  
         var domfrag = document.createRange().createContextualFragment( rendered_html );
         this.vcache[ tmp_id ]= domfrag.firstElementChild; // Cache app UI
-        console.log(tmp_id ,  ': Not Loaded in Factory')
+        console.log(tmp_id ,  ': Maybe Not cached-loaded in Factory')
         return this.vcache[ tmp_id ].cloneNode(true);
     }    
 
