@@ -1,8 +1,12 @@
 # Factory
-Factory is a simple Promise based async wrapper for underutilized standard browser functionality like Range, DOMParser, and CloneNode. This project can be used independently or as part of ecosystem aimed at promoting run-time editing and flexible modular development not constrained by overbuilt kitchen sink frameworks and also cater to Vanilla JS afficionados. <br>
-https://developer.mozilla.org/en-US/docs/Web/API/Range
+Factory combines standard 
+[Range Object](https://developer.mozilla.org/en-US/docs/Web/API/Range),
+[DOMParser](https://developer.mozilla.org/en-US/docs/Web/API/DOMParser),
+[CloneNode](https://developer.mozilla.org/en-US/docs/Web/API/Node) and
+[Service Worker](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API), into async Promise capable rendering utility for your apps. It can be used independently or as part of EL-X. These tools are aimed at promoting run-time editing, and greenfield development. <br>
+
 <br>
-https://developer.mozilla.org/en-US/docs/Web/API/DOMParser
+
 <br>
 
 * No Server 
