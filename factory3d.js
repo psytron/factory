@@ -1,6 +1,7 @@
 import * as THREE from '../../web_modules/three.js'
 import { GLTFLoader } from '../../web_modules/three/examples/jsm/loaders/GLTFLoader.js'
 import { XCOLORS } from '../xcolors.js'
+import * as globe from './globe.js'
 
 ////// ELEMENT FACTORY ////
 function Factory3d() {
@@ -209,6 +210,111 @@ function Factory3d() {
                 this.dot.add( sphere );
                 return this.dot;
                 break;
+            // YOU ARE HERE RENDERING INTO METAVIEW ON SWARMVIEW:::: 
+            case 'globe':
+                this.glob = new THREE.Mesh();
+                
+                globe.graticule().then( function( obn ){
+                    this.glob.add( obn );
+                }.bind(this), function( err ){ console.log( 'globe err:', err) ; });            
+     
+                globe.land( this.glob).then(function (obn) {
+                    this.glob.add(obn);
+                    var geometry = new THREE.SphereGeometry( 20 -0.1, 36, 18 );
+                    var material = new THREE.MeshBasicMaterial( {color: 0x000055, wireframe: false} );
+                    var sphere = new THREE.Mesh( geometry, material );
+                    this.glob.add( sphere );  
+                }.bind( this ), function (err){ console.log( 'globe err:', err );  });
+                
+                globe.cities(this.glob).then(function (obn) {
+                    this.glob.add(obn);
+                }.bind( this ), function (err){ console.log( 'globe err:', err );  });
+                
+                
+                return this.glob; 
+                break;
+            case 'grid':
+                this.grid = new THREE.Mesh();
+
+                var axis_color = "#CCCCCC"
+                var colors = ["#FFFFFF","#FF5555","#5555FF","#7777FF","#7777FF"]
+                this.color = colors[Math.round( Math.random()*3) ];
+    
+                var l_material = new THREE.LineBasicMaterial( { color:XCOLORS.floor_line , linewidth:1 } );/* linewidth on windows will always be 1 */
+                var total_lines=19;//31;
+                var one_space=10;
+                var line_length =((total_lines*one_space)-one_space)/2;
+                var half_offset= -Math.floor(total_lines/2)*one_space;
+                var grid_y = 0; // or -60 for below . 
+    
+                for( var i=0; i<total_lines; i++){
+                    var geometry = new THREE.Geometry();
+                    geometry.vertices.push( new THREE.Vector3( 0, grid_y, line_length ) ); //x, y, z
+                    geometry.vertices.push( new THREE.Vector3( 0, grid_y,-line_length ) );
+    
+                    var line = new THREE.Line(geometry, l_material);
+                    var newpos = half_offset+(i*one_space)
+                    line.position.x=newpos;
+                    this.grid.add(line);
+    
+                    var line = new THREE.Line(geometry, l_material);
+                    var newpos = half_offset+(i*one_space)
+                    line.position.z=newpos;
+                    line.rotation.y=Math.PI/2;
+                    this.grid.add(line);
+                }                
+                return this.grid;                 
+                break;
+            case 'frame':
+                this.dot1 = new THREE.Mesh();
+                var coord1 = this.getClone('coord') 
+                var coord2 = this.getClone('coord') 
+                var coord3 = this.getClone('coord') 
+                var coord4 = this.getClone('coord') 
+                coord1.position.set( -10 , 10 , 10 )
+                coord2.position.set( -10 , 10 , -10 )
+                coord3.position.set( 10 , 10 , -10 )
+                coord4.position.set( 10 , 10 , 10 )
+                this.dot1.add( coord1 )
+                this.dot1.add( coord2 )
+                this.dot1.add( coord3 )
+                this.dot1.add( coord4 )
+                return this.dot1;                 
+                break;
+            
+            case 'coord':                
+                this.coord = new THREE.Mesh();
+                var l_material = new THREE.LineBasicMaterial( { color:'#00FFFF' , linewidth:1 } );/* linewidth on windows will always be 1 */
+                var total_lines=19;//31;
+                var one_space=11;
+                var line_length =((total_lines*one_space)-one_space)/2;
+                var half_offset= -Math.floor(total_lines/2)*one_space;
+                var grid_y = 0; // or -60 for below . 
+                
+                var geometry = new THREE.Geometry();
+                geometry.vertices.push( new THREE.Vector3( 0, 0,-5 ) ); //x, y, z
+                geometry.vertices.push( new THREE.Vector3( 0, 0, 5 ) );
+
+                var geometry2 = new THREE.Geometry();
+                geometry2.vertices.push( new THREE.Vector3( 0, -5, 0 ) ); //x, y, z
+                geometry2.vertices.push( new THREE.Vector3( 0, 5,0 ) );
+
+                var geometry3 = new THREE.Geometry();
+                geometry3.vertices.push( new THREE.Vector3( -5,  0, 0 ) ); //x, y, z
+                geometry3.vertices.push( new THREE.Vector3( 5, 0, 0 ) );                
+
+                var line1 = new THREE.Line(geometry, l_material);
+                var line2 = new THREE.Line(geometry2, l_material);
+                var line3 = new THREE.Line(geometry3, l_material);
+                //var newpos = half_offset+( one_space)
+                line1.position.x=0;
+
+                this.coord.add( line1 )
+                this.coord.add( line2 )
+                this.coord.add( line3 )
+                //this.metaspace.add(line);                
+                return this.coord;          
+                break;                       
             case 'repo':
                 var geometry = new THREE.BoxGeometry( 4, 4, 4 );
                 //var material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
