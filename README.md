@@ -1,4 +1,9 @@
 # Factory
+* No Server 
+* No Compiling 
+* No Dependencies
+* No Delimeters
+
 Factory combines standard 
 [Range Object](https://developer.mozilla.org/en-US/docs/Web/API/Range),
 [DOMParser](https://developer.mozilla.org/en-US/docs/Web/API/DOMParser),
@@ -9,10 +14,7 @@ Factory combines standard
 
 <br>
 
-* No Server 
-* No Compiling 
-* No Dependencies
-* No Handlebars 
+
 
 
 ### Install
