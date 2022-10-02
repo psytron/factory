@@ -50,8 +50,9 @@ function Factory2d() {
                         //cache[ url ] = tx; // store raw for factory fallback of mangled 
                         return tx;
                     }).then( (data) =>{ 
-                    
+
                         // PRE PARSE SEARCH FOR BUNDLED TEMPLATES
+                        // STORE IN LOCAL CACHE
                         var parser = new DOMParser();
                         var loaded_dom = parser.parseFromString( data , 'text/html');
                         var loaded_templates = loaded_dom.getElementsByClassName("elx");
@@ -64,6 +65,7 @@ function Factory2d() {
                             var cache_key = url.replace(/^.*[\\\/]/, '').split('.').slice(0, -1).join('.');
                             cache[ cache_key ]=data;
                         }
+                        
                         return data;
                     })
                 );
@@ -76,7 +78,44 @@ function Factory2d() {
         });
     }
 
+    this.storeStaticTemplate=function( domTempIn ){
+        
+        var parser = new DOMParser();
+        //var loaded_dom = parser.parseFromString( domTempIn , 'text/html');
+        var loaded_dom = domTempIn ;
+        
+        this.cache[ loaded_dom.id ]=loaded_dom.outerHTML;
+        //
+        //var loaded_templates = loaded_dom.getElementsByClassName("elx");
+        // if( loaded_templates.length > 0 ){
+        //     for (var i = 0; i < loaded_templates.length; i++) {
+        //         var tmp = loaded_templates.item(i);
+        //         cache[ tmp.id ]=tmp.outerHTML;
+        //     }             
 
+    }
+
+    this.loadStatic=function( id_in ){
+
+
+    
+
+        
+    }
+    
+
+    this.cloneItemAndInject=function( ref_in , dat_in ){
+
+
+
+
+
+
+        
+
+        console.log('xex')
+    }
+    
     
     this.getTemplate=function(id){
         let cache = this.cache;
