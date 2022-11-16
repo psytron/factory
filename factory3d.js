@@ -237,10 +237,10 @@ function Factory3d() {
                 this.grid = new THREE.Mesh();
 
                 var axis_color = "#CCCCCC"
-                var colors = ["#FFFFFF","#FF5555","#5555FF","#7777FF","#7777FF"]
+                var colors = ["#390099","#0096a6","#5555AA","#6666CC","#7777FF"]
                 this.color = colors[Math.round( Math.random()*3) ];
-    
-                var l_material = new THREE.LineBasicMaterial( { color:XCOLORS.floor_line , linewidth:1 } );/* linewidth on windows will always be 1 */
+                var tcolor = XCOLORS.floor_line;
+                var l_material = new THREE.LineBasicMaterial( { color:this.color , linewidth:1 } );/* linewidth on windows will always be 1 */
                 var total_lines=19;//31;
                 var one_space=10;
                 var line_length =((total_lines*one_space)-one_space)/2;
@@ -432,3 +432,66 @@ myScene.traverse(function(object) {
         object.material = object.material.clone();
     }
 }); */
+
+
+
+
+    //this.drawCoordinates(); // moved to onDataUpdate with children count 
+
+            // ORIGINAL LOCALIZED GRID DRAW MOVED TO FACTORY: 
+            // var axis_color = "#CCCCCC"
+            // var colors = ["#FFFFFF","#FF5555","#5555FF","#7777FF","#7777FF"]
+            // this.color = colors[Math.round( Math.random()*3) ];
+
+            // var l_material = new THREE.LineBasicMaterial( { color:XCOLORS.floor_line , linewidth:1 } );/* linewidth on windows will always be 1 */
+            // var total_lines=19;//31;
+            // var one_space=10;
+            // var line_length =((total_lines*one_space)-one_space)/2;
+            // var half_offset= -Math.floor(total_lines/2)*one_space;
+            // var grid_y = 0; // or -60 for below . 
+
+            // for( var i=0; i<total_lines; i++){
+            //     var geometry = new THREE.Geometry();
+            //     geometry.vertices.push( new THREE.Vector3( 0, grid_y, line_length ) ); //x, y, z
+            //     geometry.vertices.push( new THREE.Vector3( 0, grid_y,-line_length ) );
+
+            //     var line = new THREE.Line(geometry, l_material);
+            //     var newpos = half_offset+(i*one_space)
+            //     line.position.x=newpos;
+            //     this.metaspace.add(line);
+
+            //     var line = new THREE.Line(geometry, l_material);
+            //     var newpos = half_offset+(i*one_space)
+            //     line.position.z=newpos;
+            //     line.rotation.y=Math.PI/2;
+            //     this.metaspace.add(line);
+            // }
+
+// MOVED TO FACTORY: 
+            // globe.graticule().then( function( obn ){
+            //     this.metaspace.add( obn );
+            // }.bind(this), function( err ){ console.log( 'globe err:', err) ; });            
+            // globe.land( this.metaspace ).then(function (obn) {
+            //     this.metaspace.add(obn);
+            //     var geometry = new THREE.SphereGeometry( 20 -0.1, 36, 18 );
+            //     var material = new THREE.MeshBasicMaterial( {color: 0x000055, wireframe: false} );
+            //     var sphere = new THREE.Mesh( geometry, material );
+            //     this.metaspace.add( sphere );  
+            // }.bind( this ), function (err){ console.log( 'globe err:', err );  });
+            // globe.cities(this.metaspace).then(function (obn) {
+            //     this.metaspace.add(obn);
+            // }.bind( this ), function (err){ console.log( 'globe err:', err );  });
+
+
+    // SELECT PANELS PER XCLASS AVATAR TYPE 
+    // token needs:  buy sell swap xfer display 
+    // address: SEND , Receive Display , Route Receive 
+    // HOW TO DISPLAY RELATED FUNCTION BUBBLES PER AVATAR TYPE / OBJECT XCLASS TYPE 
+    // EACH XCLASS SHOWS OWN MENUS 
+    // this.capability_matrix = {
+    //     alias:
+    //     {
+    //         init:(o)=>{    return []  }
+                
+    //     }
+    // }    

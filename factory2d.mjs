@@ -1,7 +1,13 @@
                 
 // qcom
+import jsdom from "jsdom";
+const { JSDOM } = jsdom;
 
 function Factory2d() {
+
+    var dom = new JSDOM(`<!DOCTYPE html><p></p>`);
+    var window = dom.window;
+    var document = window.document;
 
     var tmp = document.createElement('div')
     document.body.appendChild( tmp )
@@ -80,7 +86,7 @@ function Factory2d() {
 
     this.storeStaticTemplate=function( domTempIn ){
         
-        var parser = new DOMParser();
+        //var parser = new DOMParser();
         //var loaded_dom = parser.parseFromString( domTempIn , 'text/html');
         var loaded_dom = domTempIn ;
         
@@ -270,8 +276,3 @@ export { Factory2d , factory2d }
 
 
     */
-
-
-
-
-
