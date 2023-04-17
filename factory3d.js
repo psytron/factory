@@ -77,6 +77,7 @@ function Factory3d() {
                         resolve( gltf.scene ); 
                     }, ( reason )  => {
                         console.log(' reas ', reason)
+                        resolve( gltf.scene ); 
                     })                   
                         
                 }else{
