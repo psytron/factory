@@ -185,9 +185,9 @@ function Factory3d() {
     ////// GEOM CLONES //// 
     var exch_height=6;
     var sphereGeometryDot = new THREE.SphereGeometry(0.7,7,9);
-    var sphereMeshDot = new THREE.MeshBasicMaterial({ color:XCOLORS.node_color, wireframe: true });
+    var sphereMeshDot = new THREE.MeshBasicMaterial({ color:XCOLORS.node_color, wireframe: false });
     var cylynderGeometryA = new THREE.CylinderGeometry( 5, 5, exch_height, 10 );
-    var cylynderMeshA = new THREE.MeshBasicMaterial( {color:XCOLORS.dbase , wireframe: true});
+    var cylynderMeshA = new THREE.MeshBasicMaterial( {color:XCOLORS.dbase , wireframe: false });
     this.getClone=function( identifier_in ){
         //return this.avatars[ identifier_in ].clone(false);
         //return this.avatars[ identifier_in ];
