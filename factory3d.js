@@ -1,6 +1,6 @@
-import * as THREE from '../../web_modules/three.js'
-import { GLTFLoader } from '../../web_modules/three/examples/jsm/loaders/GLTFLoader.js'
-import { XCOLORS } from '../xcolors.js'
+import * as THREE from '../web_modules/three.js'
+import { GLTFLoader } from '../web_modules/three/examples/jsm/loaders/GLTFLoader.js'
+import { XCOLORS , xcolors } from '../x_modules/xcolors.js'
 import * as globe from './globe.js'
 
 ////// ELEMENT FACTORY ////
@@ -184,11 +184,14 @@ function Factory3d() {
    
     ////// GEOM CLONES //// 
     var exch_height=6;
-    var sphereGeometryDot = new THREE.SphereGeometry(0.7,7,9);
+    var sphereGeometryDot = new THREE.SphereGeometry(1.0,7,9);
     var sphereMeshDot = new THREE.MeshBasicMaterial({ color:XCOLORS.node_color, wireframe: false });
     var cylynderGeometryA = new THREE.CylinderGeometry( 5, 5, exch_height, 10 );
     var cylynderMeshA = new THREE.MeshBasicMaterial( {color:XCOLORS.dbase , wireframe: false });
-    this.getClone=function( identifier_in ){
+    
+
+    // get clone 
+    this.getClone=function( identifier_in , conf={ } ){
         //return this.avatars[ identifier_in ].clone(false);
         //return this.avatars[ identifier_in ];
         switch ( identifier_in ) {
@@ -205,35 +208,57 @@ function Factory3d() {
                 break;
             case 'dot':
                 this.dot = new THREE.Mesh();
+
+                var color1 = xcolors.confOrRandom( conf );
+                
+                var sphereMeshDot1 = new THREE.MeshBasicMaterial({ color:color1, wireframe: false });
                 var sphere = new THREE.Mesh(
                     sphereGeometryDot ,
-                    sphereMeshDot );
+                    sphereMeshDot1 );
                 this.dot.add( sphere );
                 return this.dot;
                 break;
             // YOU ARE HERE RENDERING INTO METAVIEW ON SWARMVIEW:::: 
             case 'globe':
-                this.glob = new THREE.Mesh();
+                var g = new THREE.Mesh();
                 
                 globe.graticule().then( function( obn ){
-                    this.glob.add( obn );
+                    g.add( obn );
                 }.bind(this), function( err ){ console.log( 'globe err:', err) ; });            
      
                 globe.land( this.glob).then(function (obn) {
-                    this.glob.add(obn);
-                    var geometry = new THREE.SphereGeometry( 20 -0.1, 36, 18 );
-                    var material = new THREE.MeshBasicMaterial( {color: 0x000055, wireframe: false} );
-                    var sphere = new THREE.Mesh( geometry, material );
-                    this.glob.add( sphere );  
+                    g.add(obn);
+                }.bind( this ), function (err){ console.log( 'globe err:', err );  });
+
+                globe.ocean( this.glob).then(function (obn) {
+                    g.add(obn);
+                }.bind( this ), function (err){ console.log( 'globe err:', err );  });                
+
+                globe.cities(g).then(function (obn) {
+                    g.add(obn);
                 }.bind( this ), function (err){ console.log( 'globe err:', err );  });
                 
-                globe.cities(this.glob).then(function (obn) {
-                    this.glob.add(obn);
-                }.bind( this ), function (err){ console.log( 'globe err:', err );  });
-                
-                
-                return this.glob; 
+                //g.scale.set(2,2,2) 
+                return g; 
                 break;
+            case 'moon':
+                var moon = new THREE.Mesh();
+                
+                globe.moon_graticule().then( function( obn ){
+                    moon.add( obn );
+                }.bind(this), function( err ){ console.log( 'globe err:', err) ; });    
+
+                return moon;
+                break;        
+            case 'moonb':
+                var moonb = new THREE.Mesh();
+                
+                globe.graticule().then( function( obn ){
+                    moonb.add( obn );
+                }.bind(this), function( err ){ console.log( 'globe err:', err) ; });    
+
+                return moonb;
+                break;                        
             case 'grid':
                 this.grid = new THREE.Mesh();
 
@@ -266,20 +291,67 @@ function Factory3d() {
                 }                
                 return this.grid;                 
                 break;
+          
+            case 'cyberframe':
+                this.grid = new THREE.Mesh();
+
+                var axis_color = "#CCCCCC"
+                var colors = ["#390099","#0096a6","#5555AA","#6666CC","#7777FF"]
+                this.color = colors[Math.round( Math.random()*3) ];
+                var tcolor = XCOLORS.floor_line;
+                var l_material = new THREE.LineBasicMaterial( { color:this.color , linewidth:1 } );/* linewidth on windows will always be 1 */
+                var total_lines=19;//31;
+                var one_space=10;
+                var line_length =((total_lines*one_space)-one_space)/2;
+                var half_offset= -Math.floor(total_lines/2)*one_space;
+                var grid_y = 0; // or -60 for below . 
+    
+                for( var i=0; i<total_lines; i++){
+                    var geometry = new THREE.Geometry();
+                    geometry.vertices.push( new THREE.Vector3( 0, grid_y, line_length ) ); //x, y, z
+                    geometry.vertices.push( new THREE.Vector3( 0, grid_y,-line_length ) );
+    
+                    var line = new THREE.Line(geometry, l_material);
+                    var newpos = half_offset+(i*one_space)
+                    line.position.x=newpos;
+                    this.grid.add(line);
+    
+                    var line = new THREE.Line(geometry, l_material);
+                    var newpos = half_offset+(i*one_space)
+                    line.position.z=newpos;
+                    line.rotation.y=Math.PI/2;
+                    this.grid.add(line);
+                }                
+                return this.grid;                 
+                break;                
             case 'frame':
                 this.dot1 = new THREE.Mesh();
+                var bs=20;
+                var hf=bs;
                 var coord1 = this.getClone('coord') 
                 var coord2 = this.getClone('coord') 
                 var coord3 = this.getClone('coord') 
                 var coord4 = this.getClone('coord') 
-                coord1.position.set( -10 , 10 , 10 )
-                coord2.position.set( -10 , 10 , -10 )
-                coord3.position.set( 10 , 10 , -10 )
-                coord4.position.set( 10 , 10 , 10 )
+                var coord5 = this.getClone('coord') 
+                var coord6 = this.getClone('coord') 
+                var coord7 = this.getClone('coord') 
+                var coord8 = this.getClone('coord')                 
+                coord1.position.set( -bs , hf , bs )
+                coord2.position.set( -bs , hf , -bs )
+                coord3.position.set( bs , hf , -bs )
+                coord4.position.set( bs , hf , bs )
+                coord5.position.set( -bs , -hf , bs )
+                coord6.position.set( -bs , -hf , -bs )
+                coord7.position.set( bs , -hf , -bs )
+                coord8.position.set( bs , -hf , bs )                
                 this.dot1.add( coord1 )
                 this.dot1.add( coord2 )
                 this.dot1.add( coord3 )
                 this.dot1.add( coord4 )
+                this.dot1.add( coord5 )
+                this.dot1.add( coord6 )
+                this.dot1.add( coord7 )
+                this.dot1.add( coord8 )                
                 return this.dot1;                 
                 break;
             
@@ -310,12 +382,72 @@ function Factory3d() {
                 //var newpos = half_offset+( one_space)
                 line1.position.x=0;
 
+
+           
+
+                
                 this.coord.add( line1 )
                 this.coord.add( line2 )
                 this.coord.add( line3 )
                 //this.metaspace.add(line);                
                 return this.coord;          
-                break;                       
+                break;    
+            case 'locale':                
+                this.coord = new THREE.Mesh();
+                var l_material = new THREE.LineBasicMaterial( { color:'#FFFF99' , linewidth:1 } );   /* linewidth on windows will always be 1 */
+
+                var g_material = new THREE.LineBasicMaterial( { color:'#FF0033' , linewidth:1 } );
+                var total_lines=19;//31;
+                var one_space=11;
+                var line_length =((total_lines*one_space)-one_space)/2;
+                var half_offset= -Math.floor(total_lines/2)*one_space;
+                var grid_y = 0; // or -60 for below . 
+                
+                var geometry = new THREE.Geometry();
+                geometry.vertices.push( new THREE.Vector3( 0, 0,-5 ) ); //x, y, z
+                geometry.vertices.push( new THREE.Vector3( 0, 0, 5 ) );
+
+                var geometry2 = new THREE.Geometry();
+                geometry2.vertices.push( new THREE.Vector3( 0, -8, 0 ) ); //x, y, z
+                geometry2.vertices.push( new THREE.Vector3( 0, 8,0 ) );
+
+                var geometry3 = new THREE.Geometry();
+                geometry3.vertices.push( new THREE.Vector3( -5,  0, 0 ) ); //x, y, z
+                geometry3.vertices.push( new THREE.Vector3( 5, 0, 0 ) );                
+
+                var line1 = new THREE.Line(geometry, l_material);
+                var line2 = new THREE.Line(geometry2, g_material);
+                var line3 = new THREE.Line(geometry3, l_material);
+                //var newpos = half_offset+( one_space)
+
+                
+                //line1.position.x=0;
+                var geometry = new THREE.RingGeometry( 2, 2.03, 32 ); 
+                var material = new THREE.MeshBasicMaterial( { color: 0x00FF00, side: THREE.DoubleSide } );
+                var ring = new THREE.Mesh( geometry, material );   
+                ring.rotateX(Math.PI / 180 * 90);
+                this.coord.add( ring );                     
+                
+                var geometry = new THREE.RingGeometry( 2, 2.03, 32 ); 
+                var material = new THREE.MeshBasicMaterial( { color: 0x00FF00, side: THREE.DoubleSide } );
+                var ring2 = new THREE.Mesh( geometry, material );   
+                ring2.position.y=2;
+                ring2.rotateX(Math.PI / 180 * 90);
+                this.coord.add( ring2 );  
+
+                var geometry = new THREE.RingGeometry( 2, 2.03, 32 ); 
+                var material = new THREE.MeshBasicMaterial( { color: 0x00FF00, side: THREE.DoubleSide } );
+                var ring3 = new THREE.Mesh( geometry, material );   
+                ring3.position.y=4;
+                ring3.rotateX(Math.PI / 180 * 90);
+                this.coord.add( ring3 );                  
+
+                this.coord.add( line1 )
+                this.coord.add( line2 )
+                this.coord.add( line3 )
+                //this.metaspace.add(line);                
+                return this.coord;          
+                break;                    
             case 'repo':
                 var geometry = new THREE.BoxGeometry( 4, 4, 4 );
                 //var material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
