@@ -6,6 +6,7 @@ import * as globe from './globe.js'
 ////// ELEMENT FACTORY ////
 function Factory3d() {
     
+    this.earthRadius = globe.getEarthRadius();
     
     ////// FONTS ////
     window.lefont;
@@ -195,6 +196,55 @@ function Factory3d() {
         //return this.avatars[ identifier_in ].clone(false);
         //return this.avatars[ identifier_in ];
         switch ( identifier_in ) {
+
+            case 'route':
+                this.vpath = new THREE.Mesh();
+                //return this.vpath;
+            
+                // STRAIGHT LINE 
+                var lineGeom = new THREE.Geometry();
+                
+                for( var p in conf.geometry ){
+
+                    var lineGeom = new THREE.Geometry();
+                    var coordslot = conf.geometry[p];
+
+                    if( typeof(coordslot[0])=="object" ){
+
+                        for( var s in coordslot ){
+
+                            var curpoint = coordslot[s];
+                            var pobj = globe.calcPosFromLatLonRad( curpoint[1] , curpoint[0] , this.earthRadius  ); // model.meta.radius //  
+                            //var xyzvec = convert( long , lat , rad );
+                            lineGeom.vertices.push(pobj);                            
+                        }
+                        var lineMat = new THREE.LineBasicMaterial({ color:this.color ,linewidth:1.0, transparent: false, opacity: 0.7 , linecap:'round' });
+                        this.linexx = new THREE.Line( lineGeom, lineMat );
+                        this.vpath.add( this.linexx )                        
+                        
+                    }else{
+                        var curpoint = conf.geometry[0][p];
+                        var pobj = globe.calcPosFromLatLonRad( curpoint[0] , curpoint[1] , this.earthRadius  ); // model.meta.radius //  
+                        //var xyzvec = convert( long , lat , rad );
+                        lineGeom.vertices.push(pobj);
+                        var lineMat = new THREE.LineBasicMaterial({ color:this.color ,linewidth:1.0, transparent: false, opacity: 0.7 , linecap:'round' });
+                        this.linexx = new THREE.Line( lineGeom, lineMat );
+                        this.vpath.add( this.linexx )  
+                    }
+                    var l = 9;   
+                    //var erad = this.
+
+                }
+                
+                //lineGeom.vertices.push(this.a.position);
+                //lineGeom.vertices.push(this.b.position);
+                //var lineMat = new THREE.LineBasicMaterial({ color:this.color ,linewidth:1.0, transparent: true, opacity: 0.7 , linecap:'round' });
+                //this.linexx = new THREE.Line( lineGeom, lineMat );
+                //this.vpath.add( this.linexx )
+                return this.vpath;
+                break;
+                //var color1 = xcolors.confOrRandom( conf );getClone
+                
             case 'exchange':
                 // EXCHANGE
                 this.exchange = new THREE.Mesh();
@@ -326,7 +376,7 @@ function Factory3d() {
                 break;                
             case 'frame':
                 this.dot1 = new THREE.Mesh();
-                var bs=20;
+                var bs=25;
                 var hf=bs;
                 var coord1 = this.getClone('coord') 
                 var coord2 = this.getClone('coord') 
@@ -355,7 +405,43 @@ function Factory3d() {
                 return this.dot1;                 
                 break;
             
+
             case 'coord':                
+                this.coord = new THREE.Mesh();
+                var l_material = new THREE.LineBasicMaterial( { color:'#00FFFF' , linewidth:1 } );/* linewidth on windows will always be 1 */
+                var total_lines=19;//31;
+                var one_space=11;
+                var line_length =((total_lines*one_space)-one_space)/2;
+                var half_offset= -Math.floor(total_lines/2)*one_space;
+                var grid_y = 0; // or -60 for below . 
+                
+                var geometry = new THREE.Geometry();
+                geometry.vertices.push( new THREE.Vector3( 0, 0,-1 ) ); //x, y, z
+                geometry.vertices.push( new THREE.Vector3( 0, 0, 1 ) );
+
+                var geometry2 = new THREE.Geometry();
+                geometry2.vertices.push( new THREE.Vector3( 0, -3, 0 ) ); //x, y, z
+                geometry2.vertices.push( new THREE.Vector3( 0, 3,0 ) );
+
+                var geometry3 = new THREE.Geometry();
+                geometry3.vertices.push( new THREE.Vector3( -1,  0, 0 ) ); //x, y, z
+                geometry3.vertices.push( new THREE.Vector3( 1, 0, 0 ) );                
+
+                var line1 = new THREE.Line(geometry, l_material);
+                var line2 = new THREE.Line(geometry2, l_material);
+                var line3 = new THREE.Line(geometry3, l_material);
+                //var newpos = half_offset+( one_space)
+                line1.position.x=0;
+                
+                this.coord.add( line1 )
+                this.coord.add( line2 )
+                this.coord.add( line3 )
+                //this.metaspace.add(line);                
+                return this.coord;          
+                break;    
+
+
+            case 'coord_OG':                
                 this.coord = new THREE.Mesh();
                 var l_material = new THREE.LineBasicMaterial( { color:'#00FFFF' , linewidth:1 } );/* linewidth on windows will always be 1 */
                 var total_lines=19;//31;
@@ -381,10 +467,6 @@ function Factory3d() {
                 var line3 = new THREE.Line(geometry3, l_material);
                 //var newpos = half_offset+( one_space)
                 line1.position.x=0;
-
-
-           
-
                 
                 this.coord.add( line1 )
                 this.coord.add( line2 )
@@ -392,6 +474,8 @@ function Factory3d() {
                 //this.metaspace.add(line);                
                 return this.coord;          
                 break;    
+
+                                
             case 'locale':                
                 this.coord = new THREE.Mesh();
                 var l_material = new THREE.LineBasicMaterial( { color:'#FFFF99' , linewidth:1 } );   /* linewidth on windows will always be 1 */
@@ -442,9 +526,9 @@ function Factory3d() {
                 ring3.rotateX(Math.PI / 180 * 90);
                 this.coord.add( ring3 );                  
 
-                this.coord.add( line1 )
+                //this.coord.add( line1 )
                 this.coord.add( line2 )
-                this.coord.add( line3 )
+                //this.coord.add( line3 )
                 //this.metaspace.add(line);                
                 return this.coord;          
                 break;                    

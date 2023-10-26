@@ -2,16 +2,28 @@
 import * as topojson from '../../web_modules/topojson-client.js';
 import * as THREE from '../../web_modules/three.js';
 
-var de_scale = 208
+var de_scale = 208;
+de_scale = 68
 
 var distance_to_iss     =    440
 var starlink_distance   =    550
 var moon_diameter_km    =   3476
 var earth_diameter_km   =  12756
-var distance_to_mediosa =  36000
+var distance_to_mediosat = 36000
 var distance_to_moon    = 384400
+var distance_from_earth_to_moon = 385000
 var earth_diameter_un   = earth_diameter_km / de_scale;
 var moon_diameter_un    = moon_diameter_km / de_scale;
+var moon_distance_un = distance_from_earth_to_moon / de_scale ; 
+
+
+var VIP_Accessible_reasource_units = '';
+var breathable_air_units_per_citizen =''; // Square KM    Average_AQI_Under_10 
+
+
+var pristine_cubic_meters_per_passport =9; //
+
+ 
 
 
 var radius = 40;
