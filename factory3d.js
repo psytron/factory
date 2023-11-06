@@ -1,5 +1,7 @@
 import * as THREE from '../web_modules/three.js'
 import { GLTFLoader } from '../web_modules/three/examples/jsm/loaders/GLTFLoader.js'
+import { FontLoader } from '../web_modules/three/examples/jsm/loaders/FontLoader.js'
+import { BoxLineGeometry as Geometry } from '../web_modules/three/examples/jsm/geometries/BoxLineGeometry.js'
 import { XCOLORS , xcolors } from '../x_modules/xcolors.js'
 import * as globe from './globe.js'
 
@@ -10,8 +12,11 @@ function Factory3d() {
     
     ////// FONTS ////
     window.lefont;
-    this.loader = new THREE.FontLoader();
-                       
+    //this.loader = new THREE.FontLoader();
+    this.loader = new FontLoader();
+
+    
+
     this.loadFonts=function(){
 
             //loader.load( 'fonts/nasa.small.json', function ( font ) {
@@ -36,7 +41,7 @@ function Factory3d() {
     };
     this.loadFonts = async function( ){
         return new Promise( ( resolve, reject ) => {
-            var loader = new THREE.FontLoader();
+            var loader = new FontLoader();
             //loader.load( 'fonts/nasa.small.json', function ( font ) {
             loader.load( './fonts/helvetiker_regular.typeface.json', function ( font ) {
                 this.lefont = font;
@@ -202,11 +207,13 @@ function Factory3d() {
                 //return this.vpath;
             
                 // STRAIGHT LINE 
-                var lineGeom = new THREE.Geometry();
-                
+                //var lineGeom = new THREE.BufferGeometry();
+                var linePoints = [];
                 for( var p in conf.geometry ){
 
-                    var lineGeom = new THREE.Geometry();
+                    var lineGeom = new THREE.BufferGeometry();
+                    //var lineGeomBuff = new THREE.BufferGeometry();
+                    
                     var coordslot = conf.geometry[p];
 
                     if( typeof(coordslot[0])=="object" ){
@@ -214,17 +221,19 @@ function Factory3d() {
                         for( var s in coordslot ){
 
                             var curpoint = coordslot[s];
-                            var pobj = globe.calcPosFromLatLonRad( curpoint[1] , curpoint[0] , this.earthRadius  ); // model.meta.radius //  
+                            var pobj = globe.calcPosFromLatLonRad( curpoint[1] , curpoint[0] , this.earthRadius + 1  ); // model.meta.radius //  
                             //var xyzvec = convert( long , lat , rad );
-                            lineGeom.vertices.push(pobj);                            
+                            //lineGeom.vertices.push(pobj);      
+                            linePoints.push( pobj );
                         }
-                        var lineMat = new THREE.LineBasicMaterial({ color:this.color ,linewidth:1.0, transparent: false, opacity: 0.7 , linecap:'round' });
+                        var lineMat = new THREE.LineBasicMaterial({ color:conf.color ,linewidth:1.0, transparent: false, opacity: 0.7 , linecap:'round' });
+                        lineGeom.setFromPoints( linePoints )
                         this.linexx = new THREE.Line( lineGeom, lineMat );
                         this.vpath.add( this.linexx )                        
                         
                     }else{
                         var curpoint = conf.geometry[0][p];
-                        var pobj = globe.calcPosFromLatLonRad( curpoint[0] , curpoint[1] , this.earthRadius  ); // model.meta.radius //  
+                        var pobj = globe.calcPosFromLatLonRad( curpoint[0] , curpoint[1] , this.earthRadius + 1 ); // model.meta.radius //  
                         //var xyzvec = convert( long , lat , rad );
                         lineGeom.vertices.push(pobj);
                         var lineMat = new THREE.LineBasicMaterial({ color:this.color ,linewidth:1.0, transparent: false, opacity: 0.7 , linecap:'round' });
@@ -284,12 +293,43 @@ function Factory3d() {
                     g.add(obn);
                 }.bind( this ), function (err){ console.log( 'globe err:', err );  });                
 
-                globe.cities(g).then(function (obn) {
-                    g.add(obn);
-                }.bind( this ), function (err){ console.log( 'globe err:', err );  });
+
+                // cities temp down 
+                //globe.cities(g).then(function (obn) {
+                //    g.add(obn);
+                //}.bind( this ), function (err){ console.log( 'globe err:', err );  });
                 
                 //g.scale.set(2,2,2) 
                 return g; 
+                break;
+            case 'dot_instanced':
+                var sphereGeometryDot = new THREE.SphereGeometry(1.0,7,9);
+                var sphereMeshDot = new THREE.MeshBasicMaterial({ color:XCOLORS.node_color, wireframe: false });
+                this.dot = new THREE.Mesh();
+
+                var color1 = xcolors.confOrRandom( conf );
+                
+                var sphereMeshDot1 = new THREE.MeshBasicMaterial({ color:color1, wireframe: false });
+                var sphere = new THREE.Mesh(
+                    sphereGeometryDot ,
+                    sphereMeshDot1 );
+                this.dot.add( sphere );
+                     
+                // INSTANCED 
+                const matrix = new THREE.Matrix4();
+                const mesh = new THREE.InstancedMesh( sphereGeometryDot, sphereMeshDot, 500 );
+
+                    
+
+                for ( let i = 0; i < 500; i ++ ) {
+
+                    randomizeMatrix( matrix );
+                    mesh.setMatrixAt( i, matrix );
+
+                }
+
+                return mesh ;
+
                 break;
             case 'moon':
                 var moon = new THREE.Mesh();
@@ -415,18 +455,46 @@ function Factory3d() {
                 var half_offset= -Math.floor(total_lines/2)*one_space;
                 var grid_y = 0; // or -60 for below . 
                 
-                var geometry = new THREE.Geometry();
-                geometry.vertices.push( new THREE.Vector3( 0, 0,-1 ) ); //x, y, z
-                geometry.vertices.push( new THREE.Vector3( 0, 0, 1 ) );
+                // update Buffer Geom like so 
+                //https://sbcode.net/threejs/geometry-to-buffergeometry/
+                // const material = new THREE.MeshNormalMaterial()
+                // let geometry = new THREE.BufferGeometry()
+                // const points = [
+                //     new THREE.Vector3(-1, 1, -1), //c
+                //     new THREE.Vector3(-1, -1, 1), //b
+                //     new THREE.Vector3(1, 1, 1), //a
+                
+                //     new THREE.Vector3(1, 1, 1), //a
+                //     new THREE.Vector3(1, -1, -1), //d
+                //     new THREE.Vector3(-1, 1, -1), //c
+                
+                //     new THREE.Vector3(-1, -1, 1), //b
+                //     new THREE.Vector3(1, -1, -1), //d
+                //     new THREE.Vector3(1, 1, 1), //a
+                
+                //     new THREE.Vector3(-1, 1, -1), //c
+                //     new THREE.Vector3(1, -1, -1), //d
+                //     new THREE.Vector3(-1, -1, 1), //b
+                // ]
+                // geometry.setFromPoints(points)
+                // geometry.computeVertexNormals()
+                // const mesh = new THREE.Mesh(geometry, material)
+                // scene.add(mesh)        
 
-                var geometry2 = new THREE.Geometry();
-                geometry2.vertices.push( new THREE.Vector3( 0, -3, 0 ) ); //x, y, z
-                geometry2.vertices.push( new THREE.Vector3( 0, 3,0 ) );
 
-                var geometry3 = new THREE.Geometry();
-                geometry3.vertices.push( new THREE.Vector3( -1,  0, 0 ) ); //x, y, z
-                geometry3.vertices.push( new THREE.Vector3( 1, 0, 0 ) );                
+                var geometry = new THREE.BufferGeometry();
+                geometry.setFromPoints(  new THREE.Vector3( 0, 0,-0.1 ) , new THREE.Vector3( 0, 0, 0.1 )  );
+                geometry.computeVertexNormals();
 
+                var geometry2 = new THREE.BufferGeometry();
+                geometry2.setFromPoints( new THREE.Vector3( 0, 0, 0 ) , new THREE.Vector3( 0, 6,0 ) );
+                geometry2.computeVertexNormals();
+                
+                var geometry3 = new THREE.BufferGeometry();
+                geometry3.setFromPoints( new THREE.Vector3( -0.1,  0, 0 ) , new THREE.Vector3( 0.1, 0, 0 ) );                
+                geometry3.computeVertexNormals();
+
+                
                 var line1 = new THREE.Line(geometry, l_material);
                 var line2 = new THREE.Line(geometry2, l_material);
                 var line3 = new THREE.Line(geometry3, l_material);
@@ -440,40 +508,6 @@ function Factory3d() {
                 return this.coord;          
                 break;    
 
-
-            case 'coord_OG':                
-                this.coord = new THREE.Mesh();
-                var l_material = new THREE.LineBasicMaterial( { color:'#00FFFF' , linewidth:1 } );/* linewidth on windows will always be 1 */
-                var total_lines=19;//31;
-                var one_space=11;
-                var line_length =((total_lines*one_space)-one_space)/2;
-                var half_offset= -Math.floor(total_lines/2)*one_space;
-                var grid_y = 0; // or -60 for below . 
-                
-                var geometry = new THREE.Geometry();
-                geometry.vertices.push( new THREE.Vector3( 0, 0,-5 ) ); //x, y, z
-                geometry.vertices.push( new THREE.Vector3( 0, 0, 5 ) );
-
-                var geometry2 = new THREE.Geometry();
-                geometry2.vertices.push( new THREE.Vector3( 0, -5, 0 ) ); //x, y, z
-                geometry2.vertices.push( new THREE.Vector3( 0, 5,0 ) );
-
-                var geometry3 = new THREE.Geometry();
-                geometry3.vertices.push( new THREE.Vector3( -5,  0, 0 ) ); //x, y, z
-                geometry3.vertices.push( new THREE.Vector3( 5, 0, 0 ) );                
-
-                var line1 = new THREE.Line(geometry, l_material);
-                var line2 = new THREE.Line(geometry2, l_material);
-                var line3 = new THREE.Line(geometry3, l_material);
-                //var newpos = half_offset+( one_space)
-                line1.position.x=0;
-                
-                this.coord.add( line1 )
-                this.coord.add( line2 )
-                this.coord.add( line3 )
-                //this.metaspace.add(line);                
-                return this.coord;          
-                break;    
 
                                 
             case 'locale':                
@@ -487,17 +521,17 @@ function Factory3d() {
                 var half_offset= -Math.floor(total_lines/2)*one_space;
                 var grid_y = 0; // or -60 for below . 
                 
-                var geometry = new THREE.Geometry();
-                geometry.vertices.push( new THREE.Vector3( 0, 0,-5 ) ); //x, y, z
-                geometry.vertices.push( new THREE.Vector3( 0, 0, 5 ) );
-
-                var geometry2 = new THREE.Geometry();
-                geometry2.vertices.push( new THREE.Vector3( 0, -8, 0 ) ); //x, y, z
-                geometry2.vertices.push( new THREE.Vector3( 0, 8,0 ) );
-
-                var geometry3 = new THREE.Geometry();
-                geometry3.vertices.push( new THREE.Vector3( -5,  0, 0 ) ); //x, y, z
-                geometry3.vertices.push( new THREE.Vector3( 5, 0, 0 ) );                
+                var geometry = new THREE.BufferGeometry();
+                geometry.setFromPoints( new THREE.Vector3( 0, 0,-5 ), new THREE.Vector3( 0, 0, 5 ) );
+                geometry.computeVertexNormals();
+                
+                var geometry2 = new THREE.BufferGeometry();
+                geometry2.setFromPoints( new THREE.Vector3( 0, -8, 0 ) , new THREE.Vector3( 0, 8,0 ) );
+                geometry2.computeVertexNormals();
+                
+                var geometry3 = new THREE.BufferGeometry();
+                geometry3.setFromPoints( new THREE.Vector3( -5,  0, 0 ) ,new THREE.Vector3( 5, 0, 0 ) );                
+                geometry3.computeVertexNormals();
 
                 var line1 = new THREE.Line(geometry, l_material);
                 var line2 = new THREE.Line(geometry2, g_material);
@@ -598,7 +632,8 @@ function Factory3d() {
         var matDark = new THREE.LineBasicMaterial( {color: color, side: THREE.DoubleSide} );
         var matLite = new THREE.MeshBasicMaterial( {color: color, transparent: true, opacity: 0.8, side:THREE.DoubleSide });
         var shapes = window.lefont.generateShapes( message_in , 100 );
-        var geometry = new THREE.ShapeBufferGeometry( shapes );
+        //var geometry = new THREE.ShapeBufferGeometry( shapes );
+        var geometry = new THREE.ShapeGeometry( shapes );
         geometry.computeBoundingBox();
         xMid = - 0.5 * ( geometry.boundingBox.max.x - geometry.boundingBox.min.x );
         geometry.translate( xMid, 0, 0 );
@@ -619,7 +654,7 @@ function Factory3d() {
     this.getSuperTextAsync=function( message_in , color_in ){
         let promise = new Promise(function(resolve, reject) {
             
-            var loader = new THREE.FontLoader();
+            var loader = new FontLoader();
             //var x ='fonts/nasaliz.json'
             var fnt ='./fonts/helvetiker_regular.typeface.json'
             loader.load( fnt, function ( font ) {
@@ -627,7 +662,7 @@ function Factory3d() {
                 var matDark = new THREE.LineBasicMaterial( {color: color, side: THREE.DoubleSide} );
                 var matLite = new THREE.MeshBasicMaterial( {color: color, transparent: true, opacity: 0.8, side:THREE.DoubleSide });
                 var shapes = font.generateShapes( message_in , 100 );
-                var geometry = new THREE.ShapeBufferGeometry( shapes );
+                var geometry = new THREE.ShapeGeometry( shapes );
                 geometry.computeBoundingBox();
                 var text = new THREE.Mesh( geometry, matLite );
                 //return text;                

@@ -2,9 +2,14 @@
 import * as topojson from '../../web_modules/topojson-client.js';
 import * as THREE from '../../web_modules/three.js';
 
+
+// Reduce Proportional 
 var de_scale = 208;
 de_scale = 68
 
+//  Kilometers (Km)
+var iss_alt             =    440
+var starlink_alt        =    550
 var distance_to_iss     =    440
 var starlink_distance   =    550
 var moon_diameter_km    =   3476
@@ -95,12 +100,15 @@ function vertex([longitude, latitude], radius) {
     );
 }
 function wireframe(multilinestring, radius, material) {
-    const geometry = new THREE.Geometry();
+    const geometry = new THREE.BufferGeometry();
+    var points=[]
     for (const P of multilinestring.coordinates) {
         for (let p0, p1 = vertex(P[0], radius), i = 1; i < P.length; ++i) {
-            geometry.vertices.push(p0 = p1, p1 = vertex(P[i], radius));
+            points.push(p0 = p1, p1 = vertex(P[i], radius));
         }
     }
+    geometry.setFromPoints(points)
+    geometry.computeVertexNormals();
     return new THREE.LineSegments(geometry, material);
 }
 async function land(scene) {
@@ -112,7 +120,15 @@ async function land(scene) {
 }
 async function ocean( scene ){
     var geometry = new THREE.SphereGeometry( (earth_diameter_un/2)-0.01, 36, 18 );
-    var material = new THREE.MeshBasicMaterial( {color: 0x000055, wireframe: false} );
+    var material = new THREE.MeshBasicMaterial( 
+        {
+            color: 0x000055, 
+            wireframe: false,
+            opacity: 0.3,
+            transparent: true
+        } 
+    
+    );
     var sphere = new THREE.Mesh( geometry, material );
     return sphere; 
 }
@@ -130,7 +146,7 @@ async function graticule() {
             )
         )
     };
-    return wireframe(mesh, earth_diameter_un/2, new THREE.LineBasicMaterial({ color: 0x7777FF }));
+    return wireframe(mesh, earth_diameter_un/2, new THREE.LineBasicMaterial({ color: 0x333388 }));
 }
 async function moon_graticule() {
     const mesh = {
