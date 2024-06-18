@@ -217,7 +217,8 @@ function Factory3d() {
                     var coordslot = conf.geometry[p];
 
                     if( typeof(coordslot[0])=="object" ){
-
+                        
+                        var linePoints = [];
                         for( var s in coordslot ){
 
                             var curpoint = coordslot[s];
@@ -226,16 +227,18 @@ function Factory3d() {
                             //lineGeom.vertices.push(pobj);      
                             linePoints.push( pobj );
                         }
+                        var lineGeom = new THREE.BufferGeometry();                    
                         var lineMat = new THREE.LineBasicMaterial({ color:conf.color ,linewidth:1.0, transparent: false, opacity: 0.7 , linecap:'round' });
                         lineGeom.setFromPoints( linePoints )
                         this.linexx = new THREE.Line( lineGeom, lineMat );
                         this.vpath.add( this.linexx )                        
                         
                     }else{
+                        var linePoints = [];
                         var curpoint = conf.geometry[0][p];
                         var pobj = globe.calcPosFromLatLonRad( curpoint[0] , curpoint[1] , this.earthRadius + 1 ); // model.meta.radius //  
                         //var xyzvec = convert( long , lat , rad );
-                        lineGeom.vertices.push(pobj);
+                        linePoints.push(pobj);
                         var lineMat = new THREE.LineBasicMaterial({ color:this.color ,linewidth:1.0, transparent: false, opacity: 0.7 , linecap:'round' });
                         this.linexx = new THREE.Line( lineGeom, lineMat );
                         this.vpath.add( this.linexx )  
@@ -319,13 +322,9 @@ function Factory3d() {
                 const matrix = new THREE.Matrix4();
                 const mesh = new THREE.InstancedMesh( sphereGeometryDot, sphereMeshDot, 500 );
 
-                    
-
                 for ( let i = 0; i < 500; i ++ ) {
-
                     randomizeMatrix( matrix );
                     mesh.setMatrixAt( i, matrix );
-
                 }
 
                 return mesh ;
@@ -364,19 +363,21 @@ function Factory3d() {
                 var grid_y = 0; // or -60 for below . 
     
                 for( var i=0; i<total_lines; i++){
-                    var geometry = new THREE.Geometry();
-                    geometry.vertices.push( new THREE.Vector3( 0, grid_y, line_length ) ); //x, y, z
-                    geometry.vertices.push( new THREE.Vector3( 0, grid_y,-line_length ) );
-    
+                    var geometry = new THREE.BufferGeometry();
+                    var vertices = new Float32Array([
+                        0, grid_y, line_length, //x, y, z
+                        0, grid_y, -line_length
+                    ]);
+                    geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+                    
                     var line = new THREE.Line(geometry, l_material);
-                    var newpos = half_offset+(i*one_space)
-                    line.position.x=newpos;
+                    var newpos = half_offset + (i * one_space);
+                    line.position.x = newpos;
                     this.grid.add(line);
-    
+
                     var line = new THREE.Line(geometry, l_material);
-                    var newpos = half_offset+(i*one_space)
-                    line.position.z=newpos;
-                    line.rotation.y=Math.PI/2;
+                    line.position.z = newpos;
+                    line.rotation.y = Math.PI / 2;
                     this.grid.add(line);
                 }                
                 return this.grid;                 
@@ -537,8 +538,6 @@ function Factory3d() {
                 var line2 = new THREE.Line(geometry2, g_material);
                 var line3 = new THREE.Line(geometry3, l_material);
                 //var newpos = half_offset+( one_space)
-
-                
                 //line1.position.x=0;
                 var geometry = new THREE.RingGeometry( 2, 2.03, 32 ); 
                 var material = new THREE.MeshBasicMaterial( { color: 0x00FF00, side: THREE.DoubleSide } );
@@ -655,7 +654,6 @@ function Factory3d() {
         let promise = new Promise(function(resolve, reject) {
             
             var loader = new FontLoader();
-            //var x ='fonts/nasaliz.json'
             var fnt ='./fonts/helvetiker_regular.typeface.json'
             loader.load( fnt, function ( font ) {
                 var color = color_in;//color_in || 0x760aff;
@@ -664,13 +662,12 @@ function Factory3d() {
                 var shapes = font.generateShapes( message_in , 100 );
                 var geometry = new THREE.ShapeGeometry( shapes );
                 geometry.computeBoundingBox();
-                var text = new THREE.Mesh( geometry, matLite );
-                //return text;                
+                var text = new THREE.Mesh( geometry, matLite );    
                 resolve( text );
             });
         });
         return promise;
-    }.bind(this)        
+    }.bind(this)
 }
 
 var factory3d = new Factory3d()
@@ -690,34 +687,34 @@ myScene.traverse(function(object) {
 
     //this.drawCoordinates(); // moved to onDataUpdate with children count 
 
-            // ORIGINAL LOCALIZED GRID DRAW MOVED TO FACTORY: 
-            // var axis_color = "#CCCCCC"
-            // var colors = ["#FFFFFF","#FF5555","#5555FF","#7777FF","#7777FF"]
-            // this.color = colors[Math.round( Math.random()*3) ];
+        // ORIGINAL LOCALIZED GRID DRAW MOVED TO FACTORY: 
+        // var axis_color = "#CCCCCC"
+        // var colors = ["#FFFFFF","#FF5555","#5555FF","#7777FF","#7777FF"]
+        // this.color = colors[Math.round( Math.random()*3) ];
 
-            // var l_material = new THREE.LineBasicMaterial( { color:XCOLORS.floor_line , linewidth:1 } );/* linewidth on windows will always be 1 */
-            // var total_lines=19;//31;
-            // var one_space=10;
-            // var line_length =((total_lines*one_space)-one_space)/2;
-            // var half_offset= -Math.floor(total_lines/2)*one_space;
-            // var grid_y = 0; // or -60 for below . 
+        // var l_material = new THREE.LineBasicMaterial( { color:XCOLORS.floor_line , linewidth:1 } );/* linewidth on windows will always be 1 */
+        // var total_lines=19;//31;
+        // var one_space=10;
+        // var line_length =((total_lines*one_space)-one_space)/2;
+        // var half_offset= -Math.floor(total_lines/2)*one_space;
+        // var grid_y = 0; // or -60 for below . 
 
-            // for( var i=0; i<total_lines; i++){
-            //     var geometry = new THREE.Geometry();
-            //     geometry.vertices.push( new THREE.Vector3( 0, grid_y, line_length ) ); //x, y, z
-            //     geometry.vertices.push( new THREE.Vector3( 0, grid_y,-line_length ) );
+        // for( var i=0; i<total_lines; i++){
+        //     var geometry = new THREE.Geometry();
+        //     geometry.vertices.push( new THREE.Vector3( 0, grid_y, line_length ) ); //x, y, z
+        //     geometry.vertices.push( new THREE.Vector3( 0, grid_y,-line_length ) );
 
-            //     var line = new THREE.Line(geometry, l_material);
-            //     var newpos = half_offset+(i*one_space)
-            //     line.position.x=newpos;
-            //     this.metaspace.add(line);
+        //     var line = new THREE.Line(geometry, l_material);
+        //     var newpos = half_offset+(i*one_space)
+        //     line.position.x=newpos;
+        //     this.metaspace.add(line);
 
-            //     var line = new THREE.Line(geometry, l_material);
-            //     var newpos = half_offset+(i*one_space)
-            //     line.position.z=newpos;
-            //     line.rotation.y=Math.PI/2;
-            //     this.metaspace.add(line);
-            // }
+        //     var line = new THREE.Line(geometry, l_material);
+        //     var newpos = half_offset+(i*one_space)
+        //     line.position.z=newpos;
+        //     line.rotation.y=Math.PI/2;
+        //     this.metaspace.add(line);
+        // }
 
 // MOVED TO FACTORY: 
             // globe.graticule().then( function( obn ){
