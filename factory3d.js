@@ -1,7 +1,6 @@
 import * as THREE from '../web_modules/three.js'
-import { GLTFLoader } from '../web_modules/three/examples/jsm/loaders/GLTFLoader.js'
-import { FontLoader } from '../web_modules/three/examples/jsm/loaders/FontLoader.js'
-import { BoxLineGeometry as Geometry } from '../web_modules/three/examples/jsm/geometries/BoxLineGeometry.js'
+import { GLTFLoader , FontLoader , BoxLineGeometry as Geometry} from '../web_modules/three/addons.js'
+//import { BoxLineGeometry as Geometry } from '../web_modules/three/examples/jsm/geometries/BoxLineGeometry.js'
 import { XCOLORS , xcolors } from '../x_modules/xcolors.js'
 import * as globe from './globe.js'
 
@@ -18,7 +17,6 @@ function Factory3d() {
     
 
     this.loadFonts=function(){
-
             //loader.load( 'fonts/nasa.small.json', function ( font ) {
         loader.load( './fonts/helvetiker_regular.typeface.json', function ( font ) {
             this.lefont = font;
@@ -64,6 +62,14 @@ function Factory3d() {
         //    return this.models[ url ].then( ( o ) => o.clone() );
         //}
         
+        //WORKS TEXTUR 
+        // const texture = new THREE.TextureLoader().load( './media/domain/balancer.png' );
+        // texture.colorSpace = THREE.SRGBColorSpace;
+        // const geometry = new THREE.BoxGeometry();
+        // const material = new THREE.MeshBasicMaterial( { map: texture } );
+        // var mesh = new THREE.Mesh( geometry, material );   
+        //WORKS TEXTIRs
+        
         return this.models[ url ] = new Promise( ( resolve, reject ) => {
             this.loaderx.load( url, function ( gltf ) {
                 if( obj.img ){
@@ -71,12 +77,14 @@ function Factory3d() {
                         var mesh = gltf.scene;
                         mesh.traverse(function(node) {
                             try{
-                                if( node.isMesh && node.material.name =='xlogo' ) node.material.map = tex;  
+                                if( node.isMesh && node.material.name =='xlogo' ){
+                                    node.material.map = tex;    //r1
+                                    var f=3;
+                                } 
                             }catch(e ){
                                 console.log(' Traverse for texture fail ')
                             }
                         });
-                        
                         if( obj.baseplane ){
                             mesh.add( createBasePlane() )    
                         }
@@ -99,7 +107,7 @@ function Factory3d() {
 
     this.createBasePlane=function(){
 
-        var geo = new THREE.PlaneBufferGeometry( 4, 4, 1, 1 );
+        var geo = new THREE.PlaneGeometry( 4, 4, 1, 1 );
         var mat = new THREE.MeshBasicMaterial({ color: XCOLORS.avatarbase , side: THREE.DoubleSide , wireframe:true });
         var plane = new THREE.Mesh(geo, mat);
         plane.rotateX( - Math.PI / 2);
@@ -153,6 +161,7 @@ function Factory3d() {
                 this.loaderx.load( meshurl, function ( gltf ) {
                     loadTextureX(imgurl).then( (tex)=>{
                         tex.flipY = true; 
+                        tex.mapping = THREE.EquirectangularReflectionMapping;
                         var mesh = gltf.scene;
                         mesh.traverse(function(node) {
                             try{
@@ -183,6 +192,7 @@ function Factory3d() {
         return this.textures[ url ] = new Promise( ( resolve, reject ) => {
             this.tloader.load( url, function ( texture ) {
                 texture.flipY = false;
+                texture.colorSpace = THREE.SRGBColorSpace;
                 resolve( texture );
             }, undefined, reject );
         });
@@ -212,10 +222,7 @@ function Factory3d() {
                 for( var p in conf.geometry ){
 
                     var lineGeom = new THREE.BufferGeometry();
-                    //var lineGeomBuff = new THREE.BufferGeometry();
-                    
                     var coordslot = conf.geometry[p];
-
                     if( typeof(coordslot[0])=="object" ){
                         
                         var linePoints = [];
@@ -398,7 +405,7 @@ function Factory3d() {
                 var grid_y = 0; // or -60 for below . 
     
                 for( var i=0; i<total_lines; i++){
-                    var geometry = new THREE.Geometry();
+                    var geometry = new BoxLineGeometry();
                     geometry.vertices.push( new THREE.Vector3( 0, grid_y, line_length ) ); //x, y, z
                     geometry.vertices.push( new THREE.Vector3( 0, grid_y,-line_length ) );
     
@@ -615,7 +622,7 @@ function Factory3d() {
         var matDark = new THREE.LineBasicMaterial( {color: color, side: THREE.DoubleSide} );
         var matLite = new THREE.MeshBasicMaterial( {color: color, transparent: true, opacity: 0.8, side:THREE.DoubleSide });
         var shapes = window.lefont.generateShapes( message_in , 100 );
-        var geometry = new THREE.ShapeBufferGeometry( shapes );
+        var geometry = new THREE.ShapeGeometry( shapes );
         geometry.computeBoundingBox();
         //xMid = - 0.5 * ( geometry.boundingBox.max.x - geometry.boundingBox.min.x );
         //geometry.translate( xMid, 0, 0 );

@@ -1,6 +1,6 @@
 
-import * as topojson from '../../web_modules/topojson-client.js';
-import * as THREE from '../../web_modules/three.js';
+import * as topojson from './../web_modules/topojson-client.js';
+import * as THREE from './../web_modules/three.js';
 
 
 // Reduce Proportional 
