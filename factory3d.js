@@ -280,11 +280,13 @@ function Factory3d() {
 
                 var color1 = xcolors.confOrRandom( conf );
                 
-                var sphereMeshDot1 = new THREE.MeshBasicMaterial({ color:color1, wireframe: false });
-                var sphere = new THREE.Mesh(
-                    sphereGeometryDot ,
-                    sphereMeshDot1 );
-                this.dot.add( sphere );
+
+
+                var smallDotGeometry = new THREE.SphereGeometry(0.5, 16, 16);
+                var smallDotMaterial = new THREE.MeshBasicMaterial({ color: color1, wireframe: false });
+                var smallDot = new THREE.Mesh(smallDotGeometry, smallDotMaterial);
+                this.dot.add(smallDot);
+
                 return this.dot;
                 break;
             // YOU ARE HERE RENDERING INTO METAVIEW ON SWARMVIEW:::: 
