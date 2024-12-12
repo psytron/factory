@@ -70,7 +70,7 @@ function Factory3d() {
         // var mesh = new THREE.Mesh( geometry, material );   
         //WORKS TEXTIRs
         
-        return this.models[ url ] = new Promise( ( resolve, reject ) => {
+         return this.models[ url ] = new Promise( ( resolve, reject ) => {
             this.loaderx.load( url, function ( gltf ) {
                 if( obj.img ){
                     loadTextureX( obj.img ).then( (tex)=>{
@@ -279,8 +279,6 @@ function Factory3d() {
                 this.dot = new THREE.Mesh();
 
                 var color1 = xcolors.confOrRandom( conf );
-                
-
 
                 var smallDotGeometry = new THREE.SphereGeometry(0.5, 16, 16);
                 var smallDotMaterial = new THREE.MeshBasicMaterial({ color: color1, wireframe: false });
