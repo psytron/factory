@@ -280,13 +280,30 @@ function Factory3d() {
 
                 var color1 = xcolors.confOrRandom( conf );
 
-                var smallDotGeometry = new THREE.SphereGeometry(0.5, 16, 16);
+                var diam = 0.5;
+                if( 'weight' in conf ){
+                    diam = conf['weight'];
+                }
+
+                var smallDotGeometry = new THREE.SphereGeometry( diam , 16, 16);
                 var smallDotMaterial = new THREE.MeshBasicMaterial({ color: color1, wireframe: false });
                 var smallDot = new THREE.Mesh(smallDotGeometry, smallDotMaterial);
                 this.dot.add(smallDot);
 
                 return this.dot;
                 break;
+            case 'dotbig':
+                this.dot = new THREE.Mesh();
+
+                var color1 = xcolors.confOrRandom( conf );
+
+                var smallDotGeometry = new THREE.SphereGeometry(1.5, 16, 16);
+                var smallDotMaterial = new THREE.MeshBasicMaterial({ color: color1, wireframe: false });
+                var smallDot = new THREE.Mesh(smallDotGeometry, smallDotMaterial);
+                this.dot.add(smallDot);
+
+                return this.dot;
+                break;                
             // YOU ARE HERE RENDERING INTO METAVIEW ON SWARMVIEW:::: 
             case 'globe':
                 var g = new THREE.Mesh();

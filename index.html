@@ -1,0 +1,53 @@
+<!-- Start Generation Here -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factory3D Application</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 16px;
+        }
+        #container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <div id="info">Factory3D Application</div>
+    <div id="container"></div>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+
+    <script type="module">
+
+
+
+        import { Factory3d } from '../factory/factory3d.js'
+
+        window.factory3d = new Factory3d();
+        var f = await window.factory3d.loadFonts();
+        // Your Factory3D Application Code Goes Here
+        const container = document.getElementById('container');
+
+        
+
+    </script>
+</body>
+</html>
+<!-- End Generation Here -->
