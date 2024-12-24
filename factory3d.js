@@ -303,7 +303,32 @@ function Factory3d() {
                 this.dot.add(smallDot);
 
                 return this.dot;
-                break;                
+                break;           
+            case 'flatsquare':
+                this.dot = new THREE.Mesh();
+
+                var flatSquareGeometry = new THREE.PlaneGeometry(3, 3);
+                var flatSquareMaterial = new THREE.MeshBasicMaterial({ color: 0xFF0000, side: THREE.DoubleSide });
+                var flatSquare = new THREE.Mesh(flatSquareGeometry, flatSquareMaterial);
+
+                var midSquareGeometry = new THREE.PlaneGeometry(2, 2);
+                var midSquareMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide });
+                var midSquare = new THREE.Mesh(midSquareGeometry, midSquareMaterial);                
+                
+                var smallSquareGeometry = new THREE.PlaneGeometry(1, 1);
+                var smallSquareMaterial = new THREE.MeshBasicMaterial({ color: 0xFF3300, side: THREE.DoubleSide });
+                var smallSquare = new THREE.Mesh(smallSquareGeometry, smallSquareMaterial);
+                
+                smallSquare.position.set(0, 0, -0.2); // Slightly elevate to avoid z-fighting
+                midSquare.position.set(0, 0, -0.1); //
+                
+                this.dot.add(flatSquare);
+                this.dot.add(midSquare);
+                this.dot.add(smallSquare);
+                this.dot.rotation.x = Math.PI / 2;
+                
+                return this.dot;
+                break;                                
             // YOU ARE HERE RENDERING INTO METAVIEW ON SWARMVIEW:::: 
             case 'globe':
                 var g = new THREE.Mesh();
@@ -380,8 +405,8 @@ function Factory3d() {
                 this.color = colors[Math.round( Math.random()*3) ];
                 var tcolor = XCOLORS.floor_line;
                 var l_material = new THREE.LineBasicMaterial( { color:this.color , linewidth:1 } );/* linewidth on windows will always be 1 */
-                var total_lines=19;//31;
-                var one_space=10;
+                var total_lines=9;//31;
+                var one_space=20;
                 var line_length =((total_lines*one_space)-one_space)/2;
                 var half_offset= -Math.floor(total_lines/2)*one_space;
                 var grid_y = 0; // or -60 for below . 
@@ -472,66 +497,32 @@ function Factory3d() {
             
 
             case 'coord':                
-                this.coord = new THREE.Mesh();
-                var l_material = new THREE.LineBasicMaterial( { color:'#00FFFF' , linewidth:1 } );/* linewidth on windows will always be 1 */
-                var total_lines=19;//31;
-                var one_space=11;
-                var line_length =((total_lines*one_space)-one_space)/2;
-                var half_offset= -Math.floor(total_lines/2)*one_space;
-                var grid_y = 0; // or -60 for below . 
-                
-                // update Buffer Geom like so 
-                //https://sbcode.net/threejs/geometry-to-buffergeometry/
-                // const material = new THREE.MeshNormalMaterial()
-                // let geometry = new THREE.BufferGeometry()
-                // const points = [
-                //     new THREE.Vector3(-1, 1, -1), //c
-                //     new THREE.Vector3(-1, -1, 1), //b
-                //     new THREE.Vector3(1, 1, 1), //a
-                
-                //     new THREE.Vector3(1, 1, 1), //a
-                //     new THREE.Vector3(1, -1, -1), //d
-                //     new THREE.Vector3(-1, 1, -1), //c
-                
-                //     new THREE.Vector3(-1, -1, 1), //b
-                //     new THREE.Vector3(1, -1, -1), //d
-                //     new THREE.Vector3(1, 1, 1), //a
-                
-                //     new THREE.Vector3(-1, 1, -1), //c
-                //     new THREE.Vector3(1, -1, -1), //d
-                //     new THREE.Vector3(-1, -1, 1), //b
-                // ]
-                // geometry.setFromPoints(points)
-                // geometry.computeVertexNormals()
-                // const mesh = new THREE.Mesh(geometry, material)
-                // scene.add(mesh)        
+                this.coord = new THREE.Group(); // Use Group instead of Mesh for better structure
+                //var l_material = new THREE.LineBasicMaterial({ color: '#00FFFF', linewidth: 0.1 });
+                var l_material = new THREE.LineDashedMaterial({ color: '#00FFFF', linewidth: 0.1, dashSize: 1, gapSize: 0.5 });
 
+                var sp=2;
+                // Define points for the lines
+                var points1 = [new THREE.Vector3(0, 0, -sp), new THREE.Vector3(0, 0, sp)];
+                var points2 = [new THREE.Vector3(0, -sp, 0), new THREE.Vector3(0, sp, 0)];
+                var points3 = [new THREE.Vector3(-sp, 0, 0), new THREE.Vector3(sp, 0, 0)];
 
-                var geometry = new THREE.BufferGeometry();
-                geometry.setFromPoints(  new THREE.Vector3( 0, 0,-0.1 ) , new THREE.Vector3( 0, 0, 0.1 )  );
-                geometry.computeVertexNormals();
+                // Create BufferGeometry for each line
+                var geometry1 = new THREE.BufferGeometry().setFromPoints(points1);
+                var geometry2 = new THREE.BufferGeometry().setFromPoints(points2);
+                var geometry3 = new THREE.BufferGeometry().setFromPoints(points3);
 
-                var geometry2 = new THREE.BufferGeometry();
-                geometry2.setFromPoints( new THREE.Vector3( 0, 0, 0 ) , new THREE.Vector3( 0, 6,0 ) );
-                geometry2.computeVertexNormals();
-                
-                var geometry3 = new THREE.BufferGeometry();
-                geometry3.setFromPoints( new THREE.Vector3( -0.1,  0, 0 ) , new THREE.Vector3( 0.1, 0, 0 ) );                
-                geometry3.computeVertexNormals();
-
-                
-                var line1 = new THREE.Line(geometry, l_material);
+                // Create lines from geometries
+                var line1 = new THREE.Line(geometry1, l_material);
                 var line2 = new THREE.Line(geometry2, l_material);
                 var line3 = new THREE.Line(geometry3, l_material);
-                //var newpos = half_offset+( one_space)
-                line1.position.x=0;
-                
-                this.coord.add( line1 )
-                this.coord.add( line2 )
-                this.coord.add( line3 )
-                //this.metaspace.add(line);                
-                return this.coord;          
-                break;    
+
+                // Add lines to the group
+                this.coord.add(line1);
+                this.coord.add(line2);
+                this.coord.add(line3);
+
+                return this.coord;
 
 
                                 
