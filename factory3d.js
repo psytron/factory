@@ -13,12 +13,16 @@ function Factory3d() {
     window.lefont;
     //this.loader = new THREE.FontLoader();
     this.loader = new FontLoader();
-
+    this.meshFactory;
     
 
-    this.loadFonts=function(){
+    this.loadFontsSYNCIGUESS=function(){
+
+        // convert fonts 
+        // https://gero3.github.io/facetype.js/
             //loader.load( 'fonts/nasa.small.json', function ( font ) {
-        loader.load( './fonts/helvetiker_regular.typeface.json', function ( font ) {
+        //loader.load( './fonts/helvetiker_regular.typeface.json', function ( font ) {
+            loader.load( './fonts/rise.json', function ( font ) {
             this.lefont = font;
             window.lefont = font;
         }.bind(this));
@@ -41,6 +45,7 @@ function Factory3d() {
         return new Promise( ( resolve, reject ) => {
             var loader = new FontLoader();
             //loader.load( 'fonts/nasa.small.json', function ( font ) {
+            //loader.load( './fonts/helvetiker_regular.typeface.json', function ( font ) {
             loader.load( './fonts/helvetiker_regular.typeface.json', function ( font ) {
                 this.lefont = font;
                 window.lefont = font;
@@ -208,12 +213,12 @@ function Factory3d() {
 
     this.getCloneV2=function( identifier_in , conf={ } ){
         
-        if (meshFactory[identifier_in]) {
+        if (this.meshFactory[identifier_in]) {
             return meshFactory[identifier_in](conf);
         }
         return null;
 
-        const meshFactory = {
+        this.meshFactory = {
             route: (conf) => {
                 const vpath = new THREE.Mesh();
                 for (let p in conf.geometry) {
@@ -372,7 +377,7 @@ function Factory3d() {
                 const half_offset = -Math.floor(total_lines / 2) * one_space;
                 const grid_y = 0;
                 for (let i = 0; i < total_lines; i++) {
-                    const geometry = new BoxLineGeometry();
+                    const geometry = new THREE.BufferGeometry();
                     geometry.vertices.push(new THREE.Vector3(0, grid_y, line_length));
                     geometry.vertices.push(new THREE.Vector3(0, grid_y, -line_length));
                     const line = new THREE.Line(geometry, l_material);
@@ -477,6 +482,12 @@ function Factory3d() {
                 const cube = new THREE.Mesh(geometry, material);
                 return cube;
             },
+            label: () => {
+                const geometry = new THREE.BoxGeometry(4, 4, 4);
+                const material = new THREE.MeshLambertMaterial({ color: 0x00FFFF, shininess: 50 });
+                const cube = new THREE.Mesh(geometry, material);
+                return cube;
+            },            
             bankcube: () => {
                 const dice = new THREE.Mesh(
                     new THREE.BoxGeometry(10, 10, 10),
@@ -727,10 +738,12 @@ function Factory3d() {
                 var grid_y = 0; // or -60 for below . 
     
                 for( var i=0; i<total_lines; i++){
-                    var geometry = new BoxLineGeometry();
-                    geometry.vertices.push( new THREE.Vector3( 0, grid_y, line_length ) ); //x, y, z
-                    geometry.vertices.push( new THREE.Vector3( 0, grid_y,-line_length ) );
-    
+                    var geometry = new THREE.BufferGeometry();
+                    const vertices = [
+                        new THREE.Vector3(0, grid_y, line_length),
+                        new THREE.Vector3(0, grid_y, -line_length)
+                    ];
+                    geometry.setFromPoints(vertices);
                     var line = new THREE.Line(geometry, l_material);
                     var newpos = half_offset+(i*one_space)
                     line.position.x=newpos;
@@ -868,7 +881,11 @@ function Factory3d() {
                 //var material = new THREE.MeshPhongMaterial( { color: 0x00FF00, emissive: 0x3a3a3a });
                 var cube = new THREE.Mesh( geometry, material );
                 return cube;                
-                break;            
+                break;     
+            case 'banner':
+                var textz = this.getSuperText('0x00FF:SET008[0][1]::VOLVENOMOX 12190' , 0xFF0000 ) 
+                return textz;
+                break;
             case 'bankcube':
                 var dice = new THREE.Mesh(
                     new THREE.BoxGeometry( 10, 10, 10),
