@@ -206,6 +206,288 @@ function Factory3d() {
     var cylynderMeshA = new THREE.MeshBasicMaterial( {color:XCOLORS.dbase , wireframe: false });
     
 
+    this.getCloneV2=function( identifier_in , conf={ } ){
+        
+        if (meshFactory[identifier_in]) {
+            return meshFactory[identifier_in](conf);
+        }
+        return null;
+
+        const meshFactory = {
+            route: (conf) => {
+                const vpath = new THREE.Mesh();
+                for (let p in conf.geometry) {
+                    const lineGeom = new THREE.BufferGeometry();
+                    const coordslot = conf.geometry[p];
+                    const linePoints = [];
+                    if (typeof(coordslot[0]) === "object") {
+                        for (let s in coordslot) {
+                            const curpoint = coordslot[s];
+                            const pobj = globe.calcPosFromLatLonRad(curpoint[1], curpoint[0], this.earthRadius + 1);
+                            linePoints.push(pobj);
+                        }
+                        const lineMat = new THREE.LineBasicMaterial({ color: conf.color, linewidth: 1.0, transparent: false, opacity: 0.7, linecap: 'round' });
+                        lineGeom.setFromPoints(linePoints);
+                        const linexx = new THREE.Line(lineGeom, lineMat);
+                        vpath.add(linexx);
+                    } else {
+                        const curpoint = conf.geometry[0][p];
+                        const pobj = globe.calcPosFromLatLonRad(curpoint[0], curpoint[1], this.earthRadius + 1);
+                        linePoints.push(pobj);
+                        const lineMat = new THREE.LineBasicMaterial({ color: this.color, linewidth: 1.0, transparent: false, opacity: 0.7, linecap: 'round' });
+                        const linexx = new THREE.Line(lineGeom, lineMat);
+                        vpath.add(linexx);
+                    }
+                }
+                return vpath;
+            },
+            exchange: () => {
+                const exchange = new THREE.Mesh();
+                const exch_height = 6;
+                const cylinder = new THREE.Mesh(cylynderGeometryA, cylynderMeshA);
+                cylinder.position.y = exch_height / 2;
+                exchange.add(cylinder);
+                return exchange;
+            },
+            dot: (conf) => {
+                const dot = new THREE.Mesh();
+                const color1 = xcolors.confOrRandom(conf);
+                let diam = 0.5;
+                if ('weight' in conf) {
+                    diam = conf['weight'];
+                }
+                const smallDotGeometry = new THREE.SphereGeometry(diam, 16, 16);
+                const smallDotMaterial = new THREE.MeshBasicMaterial({ color: color1, wireframe: false });
+                const smallDot = new THREE.Mesh(smallDotGeometry, smallDotMaterial);
+                dot.add(smallDot);
+                return dot;
+            },
+            dotbig: (conf) => {
+                const dot = new THREE.Mesh();
+                const color1 = xcolors.confOrRandom(conf);
+                const smallDotGeometry = new THREE.SphereGeometry(1.5, 16, 16);
+                const smallDotMaterial = new THREE.MeshBasicMaterial({ color: color1, wireframe: false });
+                const smallDot = new THREE.Mesh(smallDotGeometry, smallDotMaterial);
+                dot.add(smallDot);
+                return dot;
+            },
+            flatsquare: () => {
+                const dot = new THREE.Mesh();
+                const flatSquareGeometry = new THREE.PlaneGeometry(3, 3);
+                const flatSquareMaterial = new THREE.MeshBasicMaterial({ color: 0xFF0000, side: THREE.DoubleSide });
+                const flatSquare = new THREE.Mesh(flatSquareGeometry, flatSquareMaterial);
+                const midSquareGeometry = new THREE.PlaneGeometry(2, 2);
+                const midSquareMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide });
+                const midSquare = new THREE.Mesh(midSquareGeometry, midSquareMaterial);
+                const smallSquareGeometry = new THREE.PlaneGeometry(1, 1);
+                const smallSquareMaterial = new THREE.MeshBasicMaterial({ color: 0xFF3300, side: THREE.DoubleSide });
+                const smallSquare = new THREE.Mesh(smallSquareGeometry, smallSquareMaterial);
+                smallSquare.position.set(0, 0, -0.02);
+                midSquare.position.set(0, 0, -0.01);
+                dot.add(flatSquare);
+                dot.add(midSquare);
+                dot.add(smallSquare);
+                dot.rotation.x = Math.PI / 2;
+                return dot;
+            },
+            globe: () => {
+                const g = new THREE.Mesh();
+                globe.graticule().then((obn) => {
+                    g.add(obn);
+                }, (err) => { console.log('globe err:', err); });
+                globe.land(this.glob).then((obn) => {
+                    g.add(obn);
+                }, (err) => { console.log('globe err:', err); });
+                globe.ocean(this.glob).then((obn) => {
+                    g.add(obn);
+                }, (err) => { console.log('globe err:', err); });
+                return g;
+            },
+            dot_instanced: (conf) => {
+                const sphereGeometryDot = new THREE.SphereGeometry(1.0, 7, 9);
+                const sphereMeshDot = new THREE.MeshBasicMaterial({ color: XCOLORS.node_color, wireframe: false });
+                const dot = new THREE.Mesh();
+                const color1 = xcolors.confOrRandom(conf);
+                const sphereMeshDot1 = new THREE.MeshBasicMaterial({ color: color1, wireframe: false });
+                const sphere = new THREE.Mesh(sphereGeometryDot, sphereMeshDot1);
+                dot.add(sphere);
+                const matrix = new THREE.Matrix4();
+                const mesh = new THREE.InstancedMesh(sphereGeometryDot, sphereMeshDot, 500);
+                for (let i = 0; i < 500; i++) {
+                    randomizeMatrix(matrix);
+                    mesh.setMatrixAt(i, matrix);
+                }
+                return mesh;
+            },
+            moon: () => {
+                const moon = new THREE.Mesh();
+                globe.moon_graticule().then((obn) => {
+                    moon.add(obn);
+                }, (err) => { console.log('globe err:', err); });
+                return moon;
+            },
+            moonb: () => {
+                const moonb = new THREE.Mesh();
+                globe.graticule().then((obn) => {
+                    moonb.add(obn);
+                }, (err) => { console.log('globe err:', err); });
+                return moonb;
+            },
+            grid: () => {
+                const grid = new THREE.Mesh();
+                const colors = ["#390099", "#0096a6", "#5555AA", "#6666CC", "#7777FF"];
+                this.color = colors[Math.round(Math.random() * 3)];
+                const l_material = new THREE.LineBasicMaterial({ color: this.color, linewidth: 1 });
+                const total_lines = 9;
+                const one_space = 20;
+                const line_length = ((total_lines * one_space) - one_space) / 2;
+                const half_offset = -Math.floor(total_lines / 2) * one_space;
+                const grid_y = 0;
+                for (let i = 0; i < total_lines; i++) {
+                    const geometry = new THREE.BufferGeometry();
+                    const vertices = new Float32Array([
+                        0, grid_y, line_length,
+                        0, grid_y, -line_length
+                    ]);
+                    geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+                    const line = new THREE.Line(geometry, l_material);
+                    const newpos = half_offset + (i * one_space);
+                    line.position.x = newpos;
+                    grid.add(line);
+                    const line2 = new THREE.Line(geometry, l_material);
+                    line2.position.z = newpos;
+                    line2.rotation.y = Math.PI / 2;
+                    grid.add(line2);
+                }
+                return grid;
+            },
+            cyberframe: () => {
+                const grid = new THREE.Mesh();
+                const colors = ["#390099", "#0096a6", "#5555AA", "#6666CC", "#7777FF"];
+                this.color = colors[Math.round(Math.random() * 3)];
+                const l_material = new THREE.LineBasicMaterial({ color: this.color, linewidth: 1 });
+                const total_lines = 19;
+                const one_space = 10;
+                const line_length = ((total_lines * one_space) - one_space) / 2;
+                const half_offset = -Math.floor(total_lines / 2) * one_space;
+                const grid_y = 0;
+                for (let i = 0; i < total_lines; i++) {
+                    const geometry = new BoxLineGeometry();
+                    geometry.vertices.push(new THREE.Vector3(0, grid_y, line_length));
+                    geometry.vertices.push(new THREE.Vector3(0, grid_y, -line_length));
+                    const line = new THREE.Line(geometry, l_material);
+                    const newpos = half_offset + (i * one_space);
+                    line.position.x = newpos;
+                    grid.add(line);
+                    const line2 = new THREE.Line(geometry, l_material);
+                    line2.position.z = newpos;
+                    line2.rotation.y = Math.PI / 2;
+                    grid.add(line2);
+                }
+                return grid;
+            },
+            frame: () => {
+                const dot1 = new THREE.Mesh();
+                const bs = 25;
+                const hf = bs;
+                const coord1 = this.getClone('coord');
+                const coord2 = this.getClone('coord');
+                const coord3 = this.getClone('coord');
+                const coord4 = this.getClone('coord');
+                const coord5 = this.getClone('coord');
+                const coord6 = this.getClone('coord');
+                const coord7 = this.getClone('coord');
+                const coord8 = this.getClone('coord');
+                coord1.position.set(-bs, hf, bs);
+                coord2.position.set(-bs, hf, -bs);
+                coord3.position.set(bs, hf, -bs);
+                coord4.position.set(bs, hf, bs);
+                coord5.position.set(-bs, -hf, bs);
+                coord6.position.set(-bs, -hf, -bs);
+                coord7.position.set(bs, -hf, -bs);
+                coord8.position.set(bs, -hf, bs);
+                dot1.add(coord1);
+                dot1.add(coord2);
+                dot1.add(coord3);
+                dot1.add(coord4);
+                dot1.add(coord5);
+                dot1.add(coord6);
+                dot1.add(coord7);
+                dot1.add(coord8);
+                return dot1;
+            },
+            coord: () => {
+                const coord = new THREE.Group();
+                const l_material = new THREE.LineDashedMaterial({ color: '#00FFFF', linewidth: 0.1, dashSize: 1, gapSize: 0.5 });
+                const sp = 2;
+                const points1 = [new THREE.Vector3(0, 0, -sp), new THREE.Vector3(0, 0, sp)];
+                const points2 = [new THREE.Vector3(0, -sp, 0), new THREE.Vector3(0, sp, 0)];
+                const points3 = [new THREE.Vector3(-sp, 0, 0), new THREE.Vector3(sp, 0, 0)];
+                const geometry1 = new THREE.BufferGeometry().setFromPoints(points1);
+                const geometry2 = new THREE.BufferGeometry().setFromPoints(points2);
+                const geometry3 = new THREE.BufferGeometry().setFromPoints(points3);
+                const line1 = new THREE.Line(geometry1, l_material);
+                const line2 = new THREE.Line(geometry2, l_material);
+                const line3 = new THREE.Line(geometry3, l_material);
+                coord.add(line1);
+                coord.add(line2);
+                coord.add(line3);
+                return coord;
+            },
+            locale: () => {
+                const coord = new THREE.Mesh();
+                const l_material = new THREE.LineBasicMaterial({ color: '#FFFF99', linewidth: 1 });
+                const g_material = new THREE.LineBasicMaterial({ color: '#FF0033', linewidth: 1 });
+                const total_lines = 19;
+                const one_space = 11;
+                const line_length = ((total_lines * one_space) - one_space) / 2;
+                const half_offset = -Math.floor(total_lines / 2) * one_space;
+                const grid_y = 0;
+                const geometry = new THREE.BufferGeometry();
+                geometry.setFromPoints(new THREE.Vector3(0, 0, -5), new THREE.Vector3(0, 0, 5));
+                geometry.computeVertexNormals();
+                const geometry2 = new THREE.BufferGeometry();
+                geometry2.setFromPoints(new THREE.Vector3(0, -8, 0), new THREE.Vector3(0, 8, 0));
+                geometry2.computeVertexNormals();
+                const geometry3 = new THREE.BufferGeometry();
+                geometry3.setFromPoints(new THREE.Vector3(-5, 0, 0), new THREE.Vector3(5, 0, 0));
+                geometry3.computeVertexNormals();
+                const line1 = new THREE.Line(geometry, l_material);
+                const line2 = new THREE.Line(geometry2, g_material);
+                const line3 = new THREE.Line(geometry3, l_material);
+                const ringGeometry = new THREE.RingGeometry(2, 2.03, 32);
+                const ringMaterial = new THREE.MeshBasicMaterial({ color: 0x00FF00, side: THREE.DoubleSide });
+                const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+                ring.rotateX(Math.PI / 180 * 90);
+                coord.add(ring);
+                const ring2 = new THREE.Mesh(ringGeometry, ringMaterial);
+                ring2.position.y = 2;
+                ring2.rotateX(Math.PI / 180 * 90);
+                coord.add(ring2);
+                const ring3 = new THREE.Mesh(ringGeometry, ringMaterial);
+                ring3.position.y = 4;
+                ring3.rotateX(Math.PI / 180 * 90);
+                coord.add(ring3);
+                coord.add(line2);
+                return coord;
+            },
+            repo: () => {
+                const geometry = new THREE.BoxGeometry(4, 4, 4);
+                const material = new THREE.MeshLambertMaterial({ color: 0x00FFFF, shininess: 50 });
+                const cube = new THREE.Mesh(geometry, material);
+                return cube;
+            },
+            bankcube: () => {
+                const dice = new THREE.Mesh(
+                    new THREE.BoxGeometry(10, 10, 10),
+                    new THREE.MeshPhongMaterial({ map: THREE.ImageUtils.loadTexture('img/bankwellsfargo.png') })
+                );
+                dice.material.side = THREE.DoubleSide;
+                return dice;
+            }
+        };
+
+    }
     // get clone 
     this.getClone=function( identifier_in , conf={ } ){
         //return this.avatars[ identifier_in ].clone(false);
@@ -319,8 +601,8 @@ function Factory3d() {
                 var smallSquareMaterial = new THREE.MeshBasicMaterial({ color: 0xFF3300, side: THREE.DoubleSide });
                 var smallSquare = new THREE.Mesh(smallSquareGeometry, smallSquareMaterial);
                 
-                smallSquare.position.set(0, 0, -0.2); // Slightly elevate to avoid z-fighting
-                midSquare.position.set(0, 0, -0.1); //
+                smallSquare.position.set(0, 0, -0.02); // Slightly elevate to avoid z-fighting
+                midSquare.position.set(0, 0, -0.01); //
                 
                 this.dot.add(flatSquare);
                 this.dot.add(midSquare);
@@ -358,9 +640,7 @@ function Factory3d() {
                 var sphereGeometryDot = new THREE.SphereGeometry(1.0,7,9);
                 var sphereMeshDot = new THREE.MeshBasicMaterial({ color:XCOLORS.node_color, wireframe: false });
                 this.dot = new THREE.Mesh();
-
                 var color1 = xcolors.confOrRandom( conf );
-                
                 var sphereMeshDot1 = new THREE.MeshBasicMaterial({ color:color1, wireframe: false });
                 var sphere = new THREE.Mesh(
                     sphereGeometryDot ,
