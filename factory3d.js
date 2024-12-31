@@ -883,7 +883,19 @@ function Factory3d() {
                 return cube;                
                 break;     
             case 'banner':
-                var textz = this.getSuperText('0x00FF:SET008[0][1]::VOLVENOMOX 12190' , 0xFF0000 ) 
+                var colorValue;
+                if (typeof conf.color === 'string' && conf.color.startsWith('0x')) {
+                    colorValue = parseInt(conf.color, 16);
+                } else {
+                    colorValue = 0xFF0000; // default color if parsing fails
+                }
+
+                var scale = 1
+                if (conf.scale) {
+                    scale = conf.scale;
+                }
+
+                var textz = this.getSuperText(conf.name, colorValue , scale ) 
                 return textz;
                 break;
             case 'bankcube':
@@ -921,12 +933,12 @@ function Factory3d() {
     };
 
     ////// SUPER TEXT //// 
-    this.getSuperText=function( message_in , color_in ){
+    this.getSuperText=function( message_in , color_in  , scale_in=1 ){
         var xMid, text;
         var color = color_in || 0x760aff;
         var matDark = new THREE.LineBasicMaterial( {color: color, side: THREE.DoubleSide} );
         var matLite = new THREE.MeshBasicMaterial( {color: color, transparent: true, opacity: 0.8, side:THREE.DoubleSide });
-        var shapes = window.lefont.generateShapes( message_in , 100 );
+        var shapes = window.lefont.generateShapes( message_in , 10*scale_in );
         var geometry = new THREE.ShapeGeometry( shapes );
         geometry.computeBoundingBox();
         //xMid = - 0.5 * ( geometry.boundingBox.max.x - geometry.boundingBox.min.x );
