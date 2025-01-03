@@ -16,7 +16,7 @@ function Factory3d() {
     this.meshFactory;
     
 
-    this.loadFontsSYNCIGUESS=function(){
+    this.loadFontsSYNC_I_GUESS=function(){
 
         // convert fonts 
         // https://gero3.github.io/facetype.js/
@@ -692,7 +692,7 @@ function Factory3d() {
                 this.grid = new THREE.Mesh();
 
                 var axis_color = "#CCCCCC"
-                var colors = ["#390099","#0096a6","#5555AA","#6666CC","#7777FF"]
+                var colors = ["#390099","#0096a6","#5555AA","#6666CC","#7777AA"]
                 this.color = colors[Math.round( Math.random()*3) ];
                 var tcolor = XCOLORS.floor_line;
                 var l_material = new THREE.LineBasicMaterial( { color:this.color , linewidth:1 } );/* linewidth on windows will always be 1 */
@@ -725,7 +725,6 @@ function Factory3d() {
           
             case 'cyberframe':
                 this.grid = new THREE.Mesh();
-
                 var axis_color = "#CCCCCC"
                 var colors = ["#390099","#0096a6","#5555AA","#6666CC","#7777FF"]
                 this.color = colors[Math.round( Math.random()*3) ];
@@ -736,7 +735,6 @@ function Factory3d() {
                 var line_length =((total_lines*one_space)-one_space)/2;
                 var half_offset= -Math.floor(total_lines/2)*one_space;
                 var grid_y = 0; // or -60 for below . 
-    
                 for( var i=0; i<total_lines; i++){
                     var geometry = new THREE.BufferGeometry();
                     const vertices = [
@@ -756,19 +754,21 @@ function Factory3d() {
                     this.grid.add(line);
                 }                
                 return this.grid;                 
-                break;                
+                break;
+                
             case 'frame':
                 this.dot1 = new THREE.Mesh();
                 var bs=25;
                 var hf=bs;
-                var coord1 = this.getClone('coord') 
-                var coord2 = this.getClone('coord') 
-                var coord3 = this.getClone('coord') 
-                var coord4 = this.getClone('coord') 
-                var coord5 = this.getClone('coord') 
-                var coord6 = this.getClone('coord') 
-                var coord7 = this.getClone('coord') 
-                var coord8 = this.getClone('coord')                 
+                const sprit='flatcoord'
+                var coord1 = this.getClone(sprit) 
+                var coord2 = this.getClone(sprit) 
+                var coord3 = this.getClone(sprit) 
+                var coord4 = this.getClone(sprit) 
+                var coord5 = this.getClone(sprit) 
+                var coord6 = this.getClone(sprit) 
+                var coord7 = this.getClone(sprit) 
+                var coord8 = this.getClone(sprit)                 
                 coord1.position.set( -bs , hf , bs )
                 coord2.position.set( -bs , hf , -bs )
                 coord3.position.set( bs , hf , -bs )
@@ -787,7 +787,56 @@ function Factory3d() {
                 this.dot1.add( coord8 )                
                 return this.dot1;                 
                 break;
-            
+            case 'pointgrid':
+                
+                this.dot1 = new THREE.Mesh();
+                var bs=25;
+                var hf=bs;
+                const s1 ='flatcoord'
+                let unitwidth = 20;
+                let unitsx = 20;
+                let totalwidth = unitwidth * unitsx; 
+                for (let i = 0; i < unitsx+1; i++) {
+                    for (let j = 0; j < unitsx+1; j++) {
+                        let coord = this.getClone(s1);
+                        let xpos = -(totalwidth/2) + i * unitwidth;
+                        let zpos = -(totalwidth/2) + j * unitwidth;
+                        coord.position.set(xpos, 0.01, zpos );
+                        this.dot1.add(coord);
+                    }
+                }
+                this.dot1.add( this.getClone('grid') );
+                return this.dot1;
+                break;                
+
+
+            case 'flatcoord':                
+                this.coord = new THREE.Group(); // Use Group instead of Mesh for better structure
+                //var l_material = new THREE.LineBasicMaterial({ color: '#00FFFF', linewidth: 0.1 });
+                var l_material = new THREE.LineDashedMaterial({ color: '#00AAAA', linewidth: 0.1, dashSize: 1, gapSize: 0.5 });
+
+                var sp=2;
+                // Define points for the lines
+                var points1 = [new THREE.Vector3(0, 0, -sp), new THREE.Vector3(0, 0, sp)];
+                var points2 = [new THREE.Vector3(0, -sp, 0), new THREE.Vector3(0, sp, 0)];
+                var points3 = [new THREE.Vector3(-sp, 0, 0), new THREE.Vector3(sp, 0, 0)];
+
+                // Create BufferGeometry for each line
+                var geometry1 = new THREE.BufferGeometry().setFromPoints(points1);
+                var geometry2 = new THREE.BufferGeometry().setFromPoints(points2);
+                var geometry3 = new THREE.BufferGeometry().setFromPoints(points3);
+
+                // Create lines from geometries
+                var line1 = new THREE.Line(geometry1, l_material);
+                var line2 = new THREE.Line(geometry2, l_material);
+                var line3 = new THREE.Line(geometry3, l_material);
+
+                // Add lines to the group
+                this.coord.add(line1);
+                //this.coord.add(line2);
+                this.coord.add(line3);
+
+                return this.coord;                
 
             case 'coord':                
                 this.coord = new THREE.Group(); // Use Group instead of Mesh for better structure
