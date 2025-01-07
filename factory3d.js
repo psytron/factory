@@ -794,7 +794,7 @@ function Factory3d() {
                 var hf=bs;
                 const s1 ='flatcoord'
                 let unitwidth = 20;
-                let unitsx = 20;
+                let unitsx = 10;
                 let totalwidth = unitwidth * unitsx; 
                 for (let i = 0; i < unitsx+1; i++) {
                     for (let j = 0; j < unitsx+1; j++) {
