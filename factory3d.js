@@ -66,8 +66,10 @@ function Factory3d() {
         //if ( this.models[ url ] ) {
         //    return this.models[ url ].then( ( o ) => o.clone() );
         //}
-        
-        //WORKS TEXTUR 
+        //  hey!! looping you guys all in for the Doula retreat , 
+        //   this is Jaelean and Britt , Emiliys awesome friends from Challenge Retreat! 
+        //    we dropped in about tons of subjects 
+        //    WORKS TEXTUR 
         // const texture = new THREE.TextureLoader().load( './media/domain/balancer.png' );
         // texture.colorSpace = THREE.SRGBColorSpace;
         // const geometry = new THREE.BoxGeometry();
@@ -265,6 +267,22 @@ function Factory3d() {
                 const smallDotMaterial = new THREE.MeshBasicMaterial({ color: color1, wireframe: false });
                 const smallDot = new THREE.Mesh(smallDotGeometry, smallDotMaterial);
                 dot.add(smallDot);
+
+                // Add a larger, transparent clickable sphere for easier interaction
+                const clickableDiameter = Math.max(diam * 3, 2.5); // Ensure it's always at least 2.5 units
+                const clickableGeometry = new THREE.SphereGeometry(clickableDiameter, 16, 16);
+                const clickableMaterial = new THREE.MeshBasicMaterial({
+                    color: color1,
+                    transparent: true,
+                    opacity: 0.15,
+                    depthWrite: false,
+                    wireframe: false,
+                });
+                const clickableSphere = new THREE.Mesh(clickableGeometry, clickableMaterial);
+                clickableSphere.name = "clickableDot";
+                clickableSphere.userData.isClickable = true;
+                dot.add(clickableSphere);
+
                 return dot;
             },
             dotbig: (conf) => {
@@ -957,6 +975,9 @@ function Factory3d() {
                 return dice;
                 break;
             default:
+                // If identifier does not match any above case, use renderObject to render the mesh and return it
+                // 'conf' is passed as args for meshObj
+                return this.renderObject( identifier_in );
                 break;
         }
     }
