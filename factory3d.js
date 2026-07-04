@@ -56,59 +56,66 @@ function Factory3d() {
 
 
 
-    this.renderObject=function( obj ) {
+    this.renderObject = function (obj) {
         // should do magic parsing 
         var url = obj.mesh ? obj.mesh : 'bluecube.glb'
-        var loadTextureX= this.loadTextureX;
-        var createBasePlane=this.createBasePlane;
+        var loadTextureX = this.loadTextureX;
+        var createBasePlane = this.createBasePlane;
         
-        // SKIP CLONE FOR NOW
-        //if ( this.models[ url ] ) {
-        //    return this.models[ url ].then( ( o ) => o.clone() );
-        //}
-        //  hey!! looping you guys all in for the Doula retreat , 
-        //   this is Jaelean and Britt , Emiliys awesome friends from Challenge Retreat! 
-        //    we dropped in about tons of subjects 
-        //    WORKS TEXTUR 
-        // const texture = new THREE.TextureLoader().load( './media/domain/balancer.png' );
-        // texture.colorSpace = THREE.SRGBColorSpace;
-        // const geometry = new THREE.BoxGeometry();
-        // const material = new THREE.MeshBasicMaterial( { map: texture } );
-        // var mesh = new THREE.Mesh( geometry, material );   
-        //WORKS TEXTIRs
-        
-         return this.models[ url ] = new Promise( ( resolve, reject ) => {
-            this.loaderx.load( url, function ( gltf ) {
-                if( obj.img ){
-                    loadTextureX( obj.img ).then( (tex)=>{
-                        var mesh = gltf.scene;
-                        mesh.traverse(function(node) {
-                            try{
-                                if( node.isMesh && node.material.name =='xlogo' ){
-                                    node.material.map = tex;    //r1
-                                    var f=3;
-                                } 
-                            }catch(e ){
+        // Robust mesh name generator: deterministic, readable, and unique for mesh+options
+        function generateUniqueName(url, options = {}) {
+            // 1. Always just the filename, no ext (ex: 'cube.glb' => 'cube')
+            let baseName = String(url || '')
+                .split(/[\\/]/).pop().replace(/\.[^/.]+$/, '');
+            return baseName;
+        }
+
+
+        return this.models[url] = new Promise((resolve, reject) => {
+            this.loaderx.load(url, function (gltf) {
+                
+                var mesh = gltf.scene;
+                var uniqueName = generateUniqueName(url.replace(/[^a-zA-Z0-9]/g, ''));
+                mesh.name = uniqueName;
+
+                // Recursively assign uniqueNames to all children
+                mesh.traverse((child, index) => {
+                    if (child.isObject3D) {
+                        child.name = uniqueName;
+                    }
+                });
+                // ADD BASEPLANE IF 
+                if (obj.baseplane) {
+                    mesh.add(createBasePlane())
+                }                
+           
+                // IF BRAND / IMAGE IS PASSED TRY TO INSERT INTO NESTED MESHES 
+                if (obj.img) {
+                    loadTextureX(obj.img).then((tex) => {
+                        mesh.traverse( function(node) {
+                            try {
+                                if( node.isMesh && node.material.name == 'xlogo' ){
+                                    node.material.map = tex;
+                                }
+                            }catch(e){
                                 console.log(' Traverse for texture fail ')
                             }
                         });
-                        if( obj.baseplane ){
-                            mesh.add( createBasePlane() )    
-                        }
-                        resolve( gltf.scene ); 
-                    }, ( reason )  => {
-                        console.log(' reas ', reason)
-                        resolve( gltf.scene ); 
-                    })                   
                         
-                }else{
-                    var mesh = gltf.scene;
-                    if( obj.baseplane ){
-                        mesh.add( createBasePlane() )    
-                    }                    
-                    resolve( gltf.scene );
+                        //let instance = mesh.clone(true);
+                        //this.metaspace.add(instance);
+                        
+                        resolve( mesh.clone(true) );
+                        
+                    }, (reason) => {
+                        
+                        resolve( mesh.clone(true) );
+                    })
+                }else{                    
+                    resolve( mesh.clone(true) );
                 }
-            }, undefined, reject );
+                
+            }, undefined, reject);
         });
     };
 
@@ -599,6 +606,7 @@ function Factory3d() {
                 var smallDotGeometry = new THREE.SphereGeometry( diam , 16, 16);
                 var smallDotMaterial = new THREE.MeshBasicMaterial({ color: color1, wireframe: false });
                 var smallDot = new THREE.Mesh(smallDotGeometry, smallDotMaterial);
+                this.dot.name = 'dot'
                 this.dot.add(smallDot);
 
                 return this.dot;
@@ -853,7 +861,7 @@ function Factory3d() {
                 this.coord.add(line1);
                 //this.coord.add(line2);
                 this.coord.add(line3);
-
+                this.coord.name = 'flatcoord';
                 return this.coord;                
 
             case 'coord':                
@@ -881,7 +889,7 @@ function Factory3d() {
                 this.coord.add(line1);
                 this.coord.add(line2);
                 this.coord.add(line3);
-
+                this.coord.name = 'coord2';
                 return this.coord;
 
 

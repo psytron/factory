@@ -1,18 +1,20 @@
                 
 // qcom
 
-function Factory2d() {
+class Factory2d {
 
-    var tmp = document.createElement('div')
-    document.body.appendChild( tmp )
-    tmp.style.display = 'none';
-    this.con = tmp.attachShadow({mode:'closed'});
-    var con = this.con;
-    this.cache = {}
-    this.vcache= {}
-    
+    constructor() {
 
-    this.load=function( id_in ) {   
+        var tmp = document.createElement('div')
+        document.body.appendChild( tmp )
+        tmp.style.display = 'none';
+        this.con = tmp.attachShadow({mode:'closed'});
+        var con = this.con;
+        this.cache = {}
+        this.vcache= {}
+    }
+
+    load( id_in ) {   
         let cache = this.cache;
         var url = '/x_modules/apps/'+id_in+'/'+id_in+'.html';
         return new Promise( ( resolve, reject ) => {
@@ -27,11 +29,11 @@ function Factory2d() {
             xhr.setRequestHeader('Content-type', 'text/html');
             xhr.send();     
         });
-    };    
+    }    
 
 
 
-    this.loadAll = function( asset_list ){
+    loadAll( asset_list ){
         
         // PREP PARAM 
         asset_list = ( typeof(asset_list)=='string')? [ asset_list ] : asset_list;
@@ -78,7 +80,7 @@ function Factory2d() {
         });
     }
 
-    this.storeStaticTemplate=function( domTempIn ){
+    storeStaticTemplate( domTempIn ){
         
         var parser = new DOMParser();
         //var loaded_dom = parser.parseFromString( domTempIn , 'text/html');
@@ -95,7 +97,7 @@ function Factory2d() {
 
     }
 
-    this.loadStatic=function( id_in ){
+    loadStatic( id_in ){
 
 
     
@@ -104,7 +106,7 @@ function Factory2d() {
     }
     
 
-    this.cloneItemAndInject=function( ref_in , dat_in ){
+    cloneItemAndInject( ref_in , dat_in ){
 
 
 
@@ -117,7 +119,7 @@ function Factory2d() {
     }
     
     
-    this.getTemplate=function(id){
+    getTemplate(id){
         let cache = this.cache;
         return new Promise((resolve, reject) => {
             if (cache[id]) {
@@ -131,9 +133,9 @@ function Factory2d() {
                     .fail(reject);
             }
         });
-    },
+    }
 
-    this.render=function( tmp_id , data_in ){
+    render( tmp_id , data_in ){
         //var templatestring='`'+this.con.querySelector('#'+tmp_id).innerHTML+'`'
         var templatestring='`'+this.con.querySelector('#'+tmp_id).outerHTML+'`'
         var wholefunc = '( obj ) =>{ return '+templatestring+' }  ';
@@ -141,16 +143,10 @@ function Factory2d() {
         return outcome;
     }
     
-    this.renderSync=function( tmp_id , data_in ){        
-        var templatestring= '`'+this.cache[ tmp_id]+'`';
-        var wholefunc = '( obj ) =>{ return '+templatestring+' }  ';
-        var outcome = eval( wholefunc )( data_in )
-        return outcome;
-    }
-    this.renderNode=function( tmp_id , data_in ){
+    renderNode( tmp_id , data_in ){
 
     }
-    this.renderNodeSyncCacheVdom=function( tmp_id , data_in ){
+    renderNodeSyncCacheVdom( tmp_id , data_in ){
         /// CHECK MEMORY FOOTPRINT OF VDOM CACHE vs. TEXT-STRING CACHE and VDOM EVERYTIME
         if( tmp_id in this.vcache ){
             return this.vcache[tmp_id].cloneNode(true);
@@ -163,14 +159,18 @@ function Factory2d() {
         }
     }
 
-    this.renderSync=function( tmp_id , data_in ){
+    // NOTE: the classic version defined renderSync twice; the second
+    // definition won (last assignment). Keeping only that effective
+    // version here — it falls back to a red "Not Loaded" template when
+    // the id is missing from the cache.
+    renderSync( tmp_id , data_in ){
 
         var templatestring= ( tmp_id in this.cache ) ? '`'+this.cache[ tmp_id]+'`' :  '`<div style="color:red;">Template: '+tmp_id+' Not Loaded</div>`';
         var f = '( obj ) =>{ return '+templatestring+' }  ';
         var outcome = eval( f )( data_in )
         return outcome;
     }        
-    this.renderNodeSync=function( tmp_id , data_in ){
+    renderNodeSync( tmp_id , data_in ){
         var rendered_html = this.renderSync( tmp_id , data_in )  
         var domfrag = document.createRange().createContextualFragment( rendered_html );
         this.vcache[ tmp_id ]= domfrag.firstElementChild; // Cache app UI
@@ -179,7 +179,7 @@ function Factory2d() {
     }    
 
 
-    this.renderAsync=function( tmp_id , data_in ){
+    renderAsync( tmp_id , data_in ){
         return new Promise((resolve, reject) => {
             if( this.cache[tmp_id] ) {
                 resolve(this.cache[tmp_id]);
@@ -196,10 +196,10 @@ function Factory2d() {
             }
         });        
     }
-    this.asyncRender=function( tmp_url , data_obj ){
+    asyncRender( tmp_url , data_obj ){
         // load template and call promise when done 
     }
-    this.renderNodeWithId=function( url , data ){
+    renderNodeWithId( url , data ){
         //return vnode , id_string 
     }
 
