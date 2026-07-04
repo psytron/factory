@@ -5,18 +5,50 @@ import { XCOLORS , xcolors } from '../x_modules/xcolors.js'
 import * as globe from './globe.js'
 
 ////// ELEMENT FACTORY ////
-function Factory3d() {
-    
-    this.earthRadius = globe.getEarthRadius();
-    
-    ////// FONTS ////
-    window.lefont;
-    //this.loader = new THREE.FontLoader();
-    this.loader = new FontLoader();
-    this.meshFactory;
-    
 
-    this.loadFontsSYNC_I_GUESS=function(){
+////// GEOM CLONES //// (module-scoped: these are referenced by bare
+// identifier inside getClone / getCloneV2 / createTextCanvasX, which used
+// to close over them when this was a constructor function.)
+var exch_height = 6;
+var sphereGeometryDot = new THREE.SphereGeometry(1.0,7,9);
+var sphereMeshDot = new THREE.MeshBasicMaterial({ color:XCOLORS.node_color, wireframe: false });
+var cylynderGeometryA = new THREE.CylinderGeometry( 5, 5, exch_height, 10 );
+var cylynderMeshA = new THREE.MeshBasicMaterial( {color:XCOLORS.dbase , wireframe: false });
+var canvasx = document.createElement('canvas');
+var vfont = false;
+
+class Factory3d {
+
+    constructor() {
+        this.earthRadius = globe.getEarthRadius();
+
+        ////// FONTS ////
+        window.lefont;
+        //this.loader = new THREE.FontLoader();
+        this.loader = new FontLoader();
+        this.meshFactory;
+
+        ////// LOAD GLTF ////
+        this.loaderx = new GLTFLoader();
+        this.models = {};
+
+        ////// LOAD TEXTURE ////
+        this.tloader = new THREE.TextureLoader();
+        this.textures = {};
+
+        //// SUPER TEXT //
+        this.xfont = false;
+        window.cfont = false;
+        this.nasa_promise = false;
+
+        // loadTextureX is invoked detached inside renderObject (via a local
+        // alias), so bind it to keep `this` correct — matching the original
+        // `.bind(this)` definition. getSuperTextAsync was likewise bound.
+        this.loadTextureX = this.loadTextureX.bind(this);
+        this.getSuperTextAsync = this.getSuperTextAsync.bind(this);
+    }
+
+    loadFontsSYNC_I_GUESS(){
 
         // convert fonts 
         // https://gero3.github.io/facetype.js/
@@ -28,10 +60,7 @@ function Factory3d() {
         }.bind(this));
     }
 
-    ////// LOAD GLTF ////
-    this.loaderx = new GLTFLoader();
-    this.models = {};
-    this.loadModelX=function( url ) {
+    loadModelX( url ) {
         if ( this.models[ url ] ) {
             return this.models[ url ].then( ( o ) => o.clone() );
         }
@@ -41,7 +70,7 @@ function Factory3d() {
             }, undefined, reject );
         });
     };
-    this.loadFonts = async function( ){
+    async loadFonts( ){
         return new Promise( ( resolve, reject ) => {
             var loader = new FontLoader();
             //loader.load( 'fonts/nasa.small.json', function ( font ) {
@@ -56,7 +85,7 @@ function Factory3d() {
 
 
 
-    this.renderObject = function (obj) {
+    renderObject(obj) {
         // should do magic parsing 
         var url = obj.mesh ? obj.mesh : 'bluecube.glb'
         var loadTextureX = this.loadTextureX;
@@ -119,7 +148,7 @@ function Factory3d() {
         });
     };
 
-    this.createBasePlane=function(){
+    createBasePlane(){
 
         var geo = new THREE.PlaneGeometry( 4, 4, 1, 1 );
         var mat = new THREE.MeshBasicMaterial({ color: XCOLORS.avatarbase , side: THREE.DoubleSide , wireframe:true });
@@ -129,7 +158,7 @@ function Factory3d() {
         return plane;
     }
 
-    this.renderObjectNon=function( initObj ) {
+    renderObjectNon( initObj ) {
         
         //var data = initObj.data ? initObj.data : {}
         var meshurl = initObj.mesh ? initObj.mesh : '/models3d/bluecube.glb'
@@ -161,7 +190,7 @@ function Factory3d() {
         });
     };
 
-    this.renderObjX=function( initObj ) {
+    renderObjX( initObj ) {
         
         //var data = initObj.data ? initObj.data : {}
         var meshurl = initObj.mesh ? initObj.mesh : '/models3d/bluecube.glb'
@@ -195,10 +224,7 @@ function Factory3d() {
         });
     };
 
-    ////// LOAD TEXTURE //// 
-    this.tloader = new THREE.TextureLoader();
-    this.textures = {};
-    this.loadTextureX=function( url ){
+    loadTextureX( url ){
         // Texture is not cloning 
         //if ( this.textures[ url ] ) {
         //    return this.textures[ url ].then( ( o ) => o.clone() );
@@ -210,17 +236,9 @@ function Factory3d() {
                 resolve( texture );
             }, undefined, reject );
         });
-    }.bind(this);    
-   
-    ////// GEOM CLONES //// 
-    var exch_height=6;
-    var sphereGeometryDot = new THREE.SphereGeometry(1.0,7,9);
-    var sphereMeshDot = new THREE.MeshBasicMaterial({ color:XCOLORS.node_color, wireframe: false });
-    var cylynderGeometryA = new THREE.CylinderGeometry( 5, 5, exch_height, 10 );
-    var cylynderMeshA = new THREE.MeshBasicMaterial( {color:XCOLORS.dbase , wireframe: false });
-    
+    }
 
-    this.getCloneV2=function( identifier_in , conf={ } ){
+    getCloneV2( identifier_in , conf={ } ){
         
         if (this.meshFactory[identifier_in]) {
             return meshFactory[identifier_in](conf);
@@ -525,7 +543,7 @@ function Factory3d() {
 
     }
     // get clone 
-    this.getClone=function( identifier_in , conf={ } ){
+    getClone( identifier_in , conf={ } ){
         //return this.avatars[ identifier_in ].clone(false);
         //return this.avatars[ identifier_in ];
         switch ( identifier_in ) {
@@ -993,8 +1011,7 @@ function Factory3d() {
 ///// ENERGY OS //// JOULE KERNEL ///
 
     ////// CANVAS TEXT //// 
-    var canvasx = document.createElement('canvas');
-    this.createTextCanvasX = function( text, color, font, size ) {
+    createTextCanvasX( text, color, font, size ) {
         size = size || 36;
         var ctx = canvasx.getContext('2d');
         ctx.clearRect(0, 0, canvasx.width, canvasx.height);
@@ -1011,7 +1028,7 @@ function Factory3d() {
     };
 
     ////// SUPER TEXT //// 
-    this.getSuperText=function( message_in , color_in  , scale_in=1 ){
+    getSuperText( message_in , color_in  , scale_in=1 ){
         var xMid, text;
         var color = color_in || 0x760aff;
         var matDark = new THREE.LineBasicMaterial( {color: color, side: THREE.DoubleSide} );
@@ -1027,7 +1044,7 @@ function Factory3d() {
         return text;
     }    
     ////// SUPER TEXT //// 
-    this.getSuperText2=function( message_in , color_in ){
+    getSuperText2( message_in , color_in ){
         var xMid, text;
         var color = color_in || 0x760aff;
         var matDark = new THREE.LineBasicMaterial( {color: color, side: THREE.DoubleSide} );
@@ -1047,12 +1064,7 @@ function Factory3d() {
     
     
     
-    //// SUPER TEXT //
-    this.xfont = false;
-    window.cfont = false;
-    var vfont = false;
-    this.nasa_promise=false;
-    this.getSuperTextAsync=function( message_in , color_in ){
+    getSuperTextAsync( message_in , color_in ){
         let promise = new Promise(function(resolve, reject) {
             
             var loader = new FontLoader();
@@ -1069,7 +1081,7 @@ function Factory3d() {
             });
         });
         return promise;
-    }.bind(this)
+    }
 }
 
 var factory3d = new Factory3d()
