@@ -1000,6 +1000,158 @@ class Factory3d {
                 dice.material.side = THREE.DoubleSide;
                 return dice;
                 break;
+
+            //// EXPANDED GEOMETRIC PRIMITIVES ////
+            // Vector-shaped meshes selectable by node `label`. Each honors
+            // conf.color (falls back to a random palette color via xcolors)
+            // and an optional conf.scale multiplier. Wrapped in an outer
+            // THREE.Mesh so avatar labels/children attach at the group root,
+            // matching the existing 'dot' / 'exchange' pattern.
+            case 'box':
+                var color1 = xcolors.confOrRandom( conf );
+                var scl = conf.scale ? conf.scale : 1;
+                var box = new THREE.Mesh();
+                box.add( new THREE.Mesh(
+                    new THREE.BoxGeometry( 4, 4, 4 ),
+                    new THREE.MeshPhongMaterial({ color: color1, shininess: 60, side: THREE.DoubleSide })
+                ) );
+                box.scale.set( scl, scl, scl );
+                return box;
+                break;
+            case 'cone':
+                var color1 = xcolors.confOrRandom( conf );
+                var scl = conf.scale ? conf.scale : 1;
+                var cone = new THREE.Mesh();
+                cone.add( new THREE.Mesh(
+                    new THREE.ConeGeometry( 2.2, 4.5, 28 ),
+                    new THREE.MeshPhongMaterial({ color: color1, shininess: 60, side: THREE.DoubleSide })
+                ) );
+                cone.scale.set( scl, scl, scl );
+                return cone;
+                break;
+            case 'pyramid':
+                var color1 = xcolors.confOrRandom( conf );
+                var scl = conf.scale ? conf.scale : 1;
+                var pyramid = new THREE.Mesh();
+                var pyramidMesh = new THREE.Mesh(
+                    new THREE.ConeGeometry( 3.0, 4.5, 4 ), // 4 radial segments => square-based pyramid
+                    new THREE.MeshPhongMaterial({ color: color1, shininess: 60, side: THREE.DoubleSide, flatShading: true })
+                );
+                pyramidMesh.rotation.y = Math.PI / 4; // square the base to the view
+                pyramid.add( pyramidMesh );
+                pyramid.scale.set( scl, scl, scl );
+                return pyramid;
+                break;
+            case 'cylinder':
+                var color1 = xcolors.confOrRandom( conf );
+                var scl = conf.scale ? conf.scale : 1;
+                var cylshape = new THREE.Mesh();
+                cylshape.add( new THREE.Mesh(
+                    new THREE.CylinderGeometry( 2, 2, 4.5, 28 ),
+                    new THREE.MeshPhongMaterial({ color: color1, shininess: 60, side: THREE.DoubleSide })
+                ) );
+                cylshape.scale.set( scl, scl, scl );
+                return cylshape;
+                break;
+            case 'prism':
+                var color1 = xcolors.confOrRandom( conf );
+                var scl = conf.scale ? conf.scale : 1;
+                var prism = new THREE.Mesh();
+                prism.add( new THREE.Mesh(
+                    new THREE.CylinderGeometry( 2.4, 2.4, 4.5, 6 ), // 6 sides => hexagonal prism
+                    new THREE.MeshPhongMaterial({ color: color1, shininess: 60, side: THREE.DoubleSide, flatShading: true })
+                ) );
+                prism.scale.set( scl, scl, scl );
+                return prism;
+                break;
+            case 'torus':
+                var color1 = xcolors.confOrRandom( conf );
+                var scl = conf.scale ? conf.scale : 1;
+                var torus = new THREE.Mesh();
+                torus.add( new THREE.Mesh(
+                    new THREE.TorusGeometry( 2.2, 0.8, 18, 36 ),
+                    new THREE.MeshPhongMaterial({ color: color1, shininess: 60, side: THREE.DoubleSide })
+                ) );
+                torus.scale.set( scl, scl, scl );
+                return torus;
+                break;
+            case 'torusknot':
+                var color1 = xcolors.confOrRandom( conf );
+                var scl = conf.scale ? conf.scale : 1;
+                var torusknot = new THREE.Mesh();
+                torusknot.add( new THREE.Mesh(
+                    new THREE.TorusKnotGeometry( 1.8, 0.55, 128, 18 ),
+                    new THREE.MeshPhongMaterial({ color: color1, shininess: 60, side: THREE.DoubleSide })
+                ) );
+                torusknot.scale.set( scl, scl, scl );
+                return torusknot;
+                break;
+            case 'tetrahedron':
+                var color1 = xcolors.confOrRandom( conf );
+                var scl = conf.scale ? conf.scale : 1;
+                var tetra = new THREE.Mesh();
+                tetra.add( new THREE.Mesh(
+                    new THREE.TetrahedronGeometry( 2.8 ),
+                    new THREE.MeshPhongMaterial({ color: color1, shininess: 60, side: THREE.DoubleSide, flatShading: true })
+                ) );
+                tetra.scale.set( scl, scl, scl );
+                return tetra;
+                break;
+            case 'octahedron':
+                var color1 = xcolors.confOrRandom( conf );
+                var scl = conf.scale ? conf.scale : 1;
+                var octa = new THREE.Mesh();
+                octa.add( new THREE.Mesh(
+                    new THREE.OctahedronGeometry( 2.8 ),
+                    new THREE.MeshPhongMaterial({ color: color1, shininess: 60, side: THREE.DoubleSide, flatShading: true })
+                ) );
+                octa.scale.set( scl, scl, scl );
+                return octa;
+                break;
+            case 'dodecahedron':
+                var color1 = xcolors.confOrRandom( conf );
+                var scl = conf.scale ? conf.scale : 1;
+                var dodeca = new THREE.Mesh();
+                dodeca.add( new THREE.Mesh(
+                    new THREE.DodecahedronGeometry( 2.6 ),
+                    new THREE.MeshPhongMaterial({ color: color1, shininess: 60, side: THREE.DoubleSide, flatShading: true })
+                ) );
+                dodeca.scale.set( scl, scl, scl );
+                return dodeca;
+                break;
+            case 'icosahedron':
+                var color1 = xcolors.confOrRandom( conf );
+                var scl = conf.scale ? conf.scale : 1;
+                var icosa = new THREE.Mesh();
+                icosa.add( new THREE.Mesh(
+                    new THREE.IcosahedronGeometry( 2.7 ),
+                    new THREE.MeshPhongMaterial({ color: color1, shininess: 60, side: THREE.DoubleSide, flatShading: true })
+                ) );
+                icosa.scale.set( scl, scl, scl );
+                return icosa;
+                break;
+            case 'capsule':
+                var color1 = xcolors.confOrRandom( conf );
+                var scl = conf.scale ? conf.scale : 1;
+                var capsule = new THREE.Mesh();
+                capsule.add( new THREE.Mesh(
+                    new THREE.CapsuleGeometry( 1.6, 2.6, 8, 18 ),
+                    new THREE.MeshPhongMaterial({ color: color1, shininess: 60, side: THREE.DoubleSide })
+                ) );
+                capsule.scale.set( scl, scl, scl );
+                return capsule;
+                break;
+            case 'ring':
+                var color1 = xcolors.confOrRandom( conf );
+                var scl = conf.scale ? conf.scale : 1;
+                var ringshape = new THREE.Mesh();
+                ringshape.add( new THREE.Mesh(
+                    new THREE.RingGeometry( 1.5, 2.8, 40 ),
+                    new THREE.MeshPhongMaterial({ color: color1, shininess: 60, side: THREE.DoubleSide })
+                ) );
+                ringshape.scale.set( scl, scl, scl );
+                return ringshape;
+                break;
             default:
                 // If identifier does not match any above case, use renderObject to render the mesh and return it
                 // 'conf' is passed as args for meshObj
