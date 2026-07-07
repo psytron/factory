@@ -1174,6 +1174,135 @@ class Factory3d {
                 ringshape.scale.set( scl, scl, scl );
                 return ringshape;
                 break;
+
+            //// EXTENDED "INTERESTING" SHAPES / ICONS ////
+            // Composite and profile/extrude/tube based meshes. Every visible
+            // surface is produced through buildPrimitive so each one honors the
+            // same conf.wireframe / conf.fill / conf.fillOpacity render modes.
+            case 'star':
+                var scl = conf.scale ? conf.scale : 1;
+                var starWrap = new THREE.Mesh();
+                var starShape = new THREE.Shape();
+                var starPoints = 5, starOuter = 2.6, starInner = 1.15;
+                for ( var si = 0; si < starPoints * 2; si++ ){
+                    var sr = ( si % 2 === 0 ) ? starOuter : starInner;
+                    var sa = ( si / ( starPoints * 2 ) ) * Math.PI * 2 - Math.PI / 2;
+                    if ( si === 0 ) starShape.moveTo( Math.cos( sa ) * sr, Math.sin( sa ) * sr );
+                    else starShape.lineTo( Math.cos( sa ) * sr, Math.sin( sa ) * sr );
+                }
+                starShape.closePath();
+                var starGeo = new THREE.ExtrudeGeometry( starShape, { depth: 0.9, bevelEnabled: true, bevelThickness: 0.2, bevelSize: 0.2, bevelSegments: 2 } );
+                starGeo.center();
+                starWrap.add( this.buildPrimitive( starGeo, conf ) );
+                starWrap.scale.set( scl, scl, scl );
+                return starWrap;
+                break;
+            case 'heart':
+                var scl = conf.scale ? conf.scale : 1;
+                var heartWrap = new THREE.Mesh();
+                var heartShape = new THREE.Shape();
+                // Drawn with the point at -y and lobes at +y so it stands upright.
+                heartShape.moveTo( 0, 0.6 );
+                heartShape.bezierCurveTo( 0, 0.6, -0.4, 1.4, -1.3, 1.4 );
+                heartShape.bezierCurveTo( -2.6, 1.4, -2.6, -0.25, -2.6, -0.25 );
+                heartShape.bezierCurveTo( -2.6, -1.1, -1.6, -2.05, 0, -3.0 );
+                heartShape.bezierCurveTo( 1.6, -2.05, 2.6, -1.1, 2.6, -0.25 );
+                heartShape.bezierCurveTo( 2.6, 1.4, 1.3, 1.4, 1.3, 1.4 );
+                heartShape.bezierCurveTo( 0.4, 1.4, 0, 0.6, 0, 0.6 );
+                var heartGeo = new THREE.ExtrudeGeometry( heartShape, { depth: 0.9, bevelEnabled: true, bevelThickness: 0.25, bevelSize: 0.25, bevelSegments: 2 } );
+                heartGeo.center();
+                heartWrap.add( this.buildPrimitive( heartGeo, conf ) );
+                heartWrap.scale.set( scl, scl, scl );
+                return heartWrap;
+                break;
+            case 'vase':
+                var scl = conf.scale ? conf.scale : 1;
+                var vaseWrap = new THREE.Mesh();
+                var vasePoints = [];
+                for ( var vi = 0; vi < 14; vi++ ){
+                    vasePoints.push( new THREE.Vector2( Math.sin( vi * 0.26 + 0.3 ) * 1.3 + 0.75, ( vi - 6.5 ) * 0.45 ) );
+                }
+                var vaseGeo = new THREE.LatheGeometry( vasePoints, 28 );
+                vaseGeo.center();
+                vaseWrap.add( this.buildPrimitive( vaseGeo, conf ) );
+                vaseWrap.scale.set( scl, scl, scl );
+                return vaseWrap;
+                break;
+            case 'spring':
+                var scl = conf.scale ? conf.scale : 1;
+                var springWrap = new THREE.Mesh();
+                var springPts = [];
+                for ( var spi = 0; spi <= 120; spi++ ){
+                    var spt = spi / 120;
+                    var spang = spt * Math.PI * 2 * 4; // 4 coils
+                    springPts.push( new THREE.Vector3( Math.cos( spang ) * 1.7, ( spt - 0.5 ) * 5.0, Math.sin( spang ) * 1.7 ) );
+                }
+                var springGeo = new THREE.TubeGeometry( new THREE.CatmullRomCurve3( springPts ), 220, 0.32, 10, false );
+                springGeo.center();
+                springWrap.add( this.buildPrimitive( springGeo, conf ) );
+                springWrap.scale.set( scl, scl, scl );
+                return springWrap;
+                break;
+            case 'diamond':
+                var scl = conf.scale ? conf.scale : 1;
+                var diamond = new THREE.Mesh();
+                var diaCrown = this.buildPrimitive( new THREE.ConeGeometry( 2.2, 1.5, 8 ), conf, { flatShading: true } );
+                diaCrown.position.y = 0.75;
+                var diaPav = this.buildPrimitive( new THREE.ConeGeometry( 2.2, 3.0, 8 ), conf, { flatShading: true } );
+                diaPav.rotation.x = Math.PI; // point the pavilion downward
+                diaPav.position.y = -1.5;
+                diamond.add( diaCrown );
+                diamond.add( diaPav );
+                diamond.scale.set( scl, scl, scl );
+                return diamond;
+                break;
+            case 'crystal':
+                var scl = conf.scale ? conf.scale : 1;
+                var crystalWrap = new THREE.Mesh();
+                var crystalGeo = new THREE.OctahedronGeometry( 2.2 );
+                crystalGeo.scale( 0.7, 1.5, 0.7 ); // elongate into a shard
+                crystalWrap.add( this.buildPrimitive( crystalGeo, conf, { flatShading: true } ) );
+                crystalWrap.scale.set( scl, scl, scl );
+                return crystalWrap;
+                break;
+            case 'arrow':
+                var scl = conf.scale ? conf.scale : 1;
+                var arrow = new THREE.Mesh();
+                var arrowShaft = this.buildPrimitive( new THREE.CylinderGeometry( 0.5, 0.5, 3.0, 16 ), conf );
+                arrowShaft.position.y = -0.6;
+                var arrowHead = this.buildPrimitive( new THREE.ConeGeometry( 1.1, 1.8, 20 ), conf );
+                arrowHead.position.y = 1.8;
+                arrow.add( arrowShaft );
+                arrow.add( arrowHead );
+                arrow.scale.set( scl, scl, scl );
+                return arrow;
+                break;
+            case 'plus':
+                var scl = conf.scale ? conf.scale : 1;
+                var plus = new THREE.Mesh();
+                plus.add( this.buildPrimitive( new THREE.BoxGeometry( 4.6, 1.7, 1.7 ), conf ) );
+                plus.add( this.buildPrimitive( new THREE.BoxGeometry( 1.7, 4.6, 1.7 ), conf ) );
+                plus.add( this.buildPrimitive( new THREE.BoxGeometry( 1.7, 1.7, 4.6 ), conf ) );
+                plus.scale.set( scl, scl, scl );
+                return plus;
+                break;
+            case 'spikeball':
+                var scl = conf.scale ? conf.scale : 1;
+                var spikeball = new THREE.Mesh();
+                spikeball.add( this.buildPrimitive( new THREE.IcosahedronGeometry( 1.6 ), conf, { flatShading: true } ) );
+                var spikeDirs = [ [0,1,0],[0,-1,0],[1,0,0],[-1,0,0],[0,0,1],[0,0,-1],
+                                  [0.7,0.7,0],[-0.7,0.7,0],[0.7,-0.7,0],[-0.7,-0.7,0] ];
+                var spikeUp = new THREE.Vector3( 0, 1, 0 );
+                for ( var ski = 0; ski < spikeDirs.length; ski++ ){
+                    var spikeCone = this.buildPrimitive( new THREE.ConeGeometry( 0.55, 1.5, 10 ), conf, { flatShading: true } );
+                    var spikeVec = new THREE.Vector3( spikeDirs[ski][0], spikeDirs[ski][1], spikeDirs[ski][2] ).normalize();
+                    spikeCone.position.copy( spikeVec.clone().multiplyScalar( 2.0 ) );
+                    spikeCone.quaternion.setFromUnitVectors( spikeUp, spikeVec ); // aim +Y cone along the ray
+                    spikeball.add( spikeCone );
+                }
+                spikeball.scale.set( scl, scl, scl );
+                return spikeball;
+                break;
             default:
                 // If identifier does not match any above case, use renderObject to render the mesh and return it
                 // 'conf' is passed as args for meshObj
