@@ -542,6 +542,74 @@ class Factory3d {
         };
 
     }
+
+    // Build the inner mesh for a primitive shape while honoring render-mode
+    // options passed via the node payload / conf. Centralizes the wireframe
+    // and transparent-fill logic so every primitive case behaves identically.
+    //   conf.color        - explicit color (else random palette via xcolors)
+    //   conf.wireframe     - when truthy, draw the shape as a wireframe
+    //   conf.fill          - when truthy (or conf.fillOpacity set), render the
+    //                        fill body as a partially transparent surface
+    //   conf.fillOpacity   - 0..1 opacity for that fill (defaults to 0.25)
+    // Payloads arrive from JSON, so booleans/numbers can be strings ("true",
+    // "0.5") — these are normalized below.
+    // matOpts lets a caller carry per-shape material flags (e.g. flatShading)
+    // for the default lit-solid render path.
+    // Returns a single THREE.Mesh, or a THREE.Mesh group holding a translucent
+    // fill + a wireframe overlay when both are requested.
+    buildPrimitive( geometry, conf = {}, matOpts = {} ){
+        var color1 = xcolors.confOrRandom( conf );
+
+        // Normalize JSON-string params so "true"/"false" and "0.5" behave.
+        var wire = ( conf.wireframe === true || conf.wireframe === 'true' );
+        var hasFill = ( 'fillOpacity' in conf ) || conf.fill === true || conf.fill === 'true';
+        var fillOpacity = parseFloat( conf.fillOpacity );
+        if ( !( fillOpacity >= 0 && fillOpacity <= 1 ) ) fillOpacity = 0.25;
+
+        var meshes = [];
+
+        // Fill body — rendered unless the caller asked for a pure wireframe.
+        if ( !wire || hasFill ){
+            var fillMat;
+            if ( hasFill ){
+                // Unlit Basic material for the translucent fill. A DoubleSide
+                // *lit* transparent hull blends in its unlit interior back-faces
+                // and reads as a black blob; Basic keeps a clean flat color.
+                // depthWrite:false + polygonOffset let the wireframe sit crisply
+                // on the surface without z-fighting.
+                fillMat = new THREE.MeshBasicMaterial( {
+                    color: color1,
+                    transparent: true,
+                    opacity: fillOpacity,
+                    side: THREE.DoubleSide,
+                    depthWrite: false,
+                    polygonOffset: true,
+                    polygonOffsetFactor: 1,
+                    polygonOffsetUnits: 1
+                } );
+            } else {
+                fillMat = new THREE.MeshPhongMaterial( Object.assign( { color: color1, shininess: 60, side: THREE.DoubleSide }, matOpts ) );
+            }
+            meshes.push( new THREE.Mesh( geometry, fillMat ) );
+        }
+
+        // Wireframe overlay — unlit so it draws a crisp, consistent color.
+        if ( wire ){
+            meshes.push( new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( { color: color1, wireframe: true } ) ) );
+        }
+
+        // Single component returns the mesh directly (matches the original
+        // solid-shape structure); combined fill+wireframe returns a group.
+        if ( meshes.length === 1 ){
+            return meshes[0];
+        }
+        var group = new THREE.Mesh();
+        for ( var m = 0; m < meshes.length; m++ ){
+            group.add( meshes[m] );
+        }
+        return group;
+    }
+
     // get clone 
     getClone( identifier_in , conf={ } ){
         //return this.avatars[ identifier_in ].clone(false);
@@ -1008,34 +1076,25 @@ class Factory3d {
             // THREE.Mesh so avatar labels/children attach at the group root,
             // matching the existing 'dot' / 'exchange' pattern.
             case 'box':
-                var color1 = xcolors.confOrRandom( conf );
                 var scl = conf.scale ? conf.scale : 1;
                 var box = new THREE.Mesh();
-                box.add( new THREE.Mesh(
-                    new THREE.BoxGeometry( 4, 4, 4 ),
-                    new THREE.MeshPhongMaterial({ color: color1, shininess: 60, side: THREE.DoubleSide })
-                ) );
+                box.add( this.buildPrimitive( new THREE.BoxGeometry( 4, 4, 4 ), conf ) );
                 box.scale.set( scl, scl, scl );
                 return box;
                 break;
             case 'cone':
-                var color1 = xcolors.confOrRandom( conf );
                 var scl = conf.scale ? conf.scale : 1;
                 var cone = new THREE.Mesh();
-                cone.add( new THREE.Mesh(
-                    new THREE.ConeGeometry( 2.2, 4.5, 28 ),
-                    new THREE.MeshPhongMaterial({ color: color1, shininess: 60, side: THREE.DoubleSide })
-                ) );
+                cone.add( this.buildPrimitive( new THREE.ConeGeometry( 2.2, 4.5, 28 ), conf ) );
                 cone.scale.set( scl, scl, scl );
                 return cone;
                 break;
             case 'pyramid':
-                var color1 = xcolors.confOrRandom( conf );
                 var scl = conf.scale ? conf.scale : 1;
                 var pyramid = new THREE.Mesh();
-                var pyramidMesh = new THREE.Mesh(
+                var pyramidMesh = this.buildPrimitive(
                     new THREE.ConeGeometry( 3.0, 4.5, 4 ), // 4 radial segments => square-based pyramid
-                    new THREE.MeshPhongMaterial({ color: color1, shininess: 60, side: THREE.DoubleSide, flatShading: true })
+                    conf, { flatShading: true }
                 );
                 pyramidMesh.rotation.y = Math.PI / 4; // square the base to the view
                 pyramid.add( pyramidMesh );
@@ -1043,112 +1102,75 @@ class Factory3d {
                 return pyramid;
                 break;
             case 'cylinder':
-                var color1 = xcolors.confOrRandom( conf );
                 var scl = conf.scale ? conf.scale : 1;
                 var cylshape = new THREE.Mesh();
-                cylshape.add( new THREE.Mesh(
-                    new THREE.CylinderGeometry( 2, 2, 4.5, 28 ),
-                    new THREE.MeshPhongMaterial({ color: color1, shininess: 60, side: THREE.DoubleSide })
-                ) );
+                cylshape.add( this.buildPrimitive( new THREE.CylinderGeometry( 2, 2, 4.5, 28 ), conf ) );
                 cylshape.scale.set( scl, scl, scl );
                 return cylshape;
                 break;
             case 'prism':
-                var color1 = xcolors.confOrRandom( conf );
                 var scl = conf.scale ? conf.scale : 1;
                 var prism = new THREE.Mesh();
-                prism.add( new THREE.Mesh(
+                prism.add( this.buildPrimitive(
                     new THREE.CylinderGeometry( 2.4, 2.4, 4.5, 6 ), // 6 sides => hexagonal prism
-                    new THREE.MeshPhongMaterial({ color: color1, shininess: 60, side: THREE.DoubleSide, flatShading: true })
+                    conf, { flatShading: true }
                 ) );
                 prism.scale.set( scl, scl, scl );
                 return prism;
                 break;
             case 'torus':
-                var color1 = xcolors.confOrRandom( conf );
                 var scl = conf.scale ? conf.scale : 1;
                 var torus = new THREE.Mesh();
-                torus.add( new THREE.Mesh(
-                    new THREE.TorusGeometry( 2.2, 0.8, 18, 36 ),
-                    new THREE.MeshPhongMaterial({ color: color1, shininess: 60, side: THREE.DoubleSide })
-                ) );
+                torus.add( this.buildPrimitive( new THREE.TorusGeometry( 2.2, 0.8, 18, 36 ), conf ) );
                 torus.scale.set( scl, scl, scl );
                 return torus;
                 break;
             case 'torusknot':
-                var color1 = xcolors.confOrRandom( conf );
                 var scl = conf.scale ? conf.scale : 1;
                 var torusknot = new THREE.Mesh();
-                torusknot.add( new THREE.Mesh(
-                    new THREE.TorusKnotGeometry( 1.8, 0.55, 128, 18 ),
-                    new THREE.MeshPhongMaterial({ color: color1, shininess: 60, side: THREE.DoubleSide })
-                ) );
+                torusknot.add( this.buildPrimitive( new THREE.TorusKnotGeometry( 1.8, 0.55, 128, 18 ), conf ) );
                 torusknot.scale.set( scl, scl, scl );
                 return torusknot;
                 break;
             case 'tetrahedron':
-                var color1 = xcolors.confOrRandom( conf );
                 var scl = conf.scale ? conf.scale : 1;
                 var tetra = new THREE.Mesh();
-                tetra.add( new THREE.Mesh(
-                    new THREE.TetrahedronGeometry( 2.8 ),
-                    new THREE.MeshPhongMaterial({ color: color1, shininess: 60, side: THREE.DoubleSide, flatShading: true })
-                ) );
+                tetra.add( this.buildPrimitive( new THREE.TetrahedronGeometry( 2.8 ), conf, { flatShading: true } ) );
                 tetra.scale.set( scl, scl, scl );
                 return tetra;
                 break;
             case 'octahedron':
-                var color1 = xcolors.confOrRandom( conf );
                 var scl = conf.scale ? conf.scale : 1;
                 var octa = new THREE.Mesh();
-                octa.add( new THREE.Mesh(
-                    new THREE.OctahedronGeometry( 2.8 ),
-                    new THREE.MeshPhongMaterial({ color: color1, shininess: 60, side: THREE.DoubleSide, flatShading: true })
-                ) );
+                octa.add( this.buildPrimitive( new THREE.OctahedronGeometry( 2.8 ), conf, { flatShading: true } ) );
                 octa.scale.set( scl, scl, scl );
                 return octa;
                 break;
             case 'dodecahedron':
-                var color1 = xcolors.confOrRandom( conf );
                 var scl = conf.scale ? conf.scale : 1;
                 var dodeca = new THREE.Mesh();
-                dodeca.add( new THREE.Mesh(
-                    new THREE.DodecahedronGeometry( 2.6 ),
-                    new THREE.MeshPhongMaterial({ color: color1, shininess: 60, side: THREE.DoubleSide, flatShading: true })
-                ) );
+                dodeca.add( this.buildPrimitive( new THREE.DodecahedronGeometry( 2.6 ), conf, { flatShading: true } ) );
                 dodeca.scale.set( scl, scl, scl );
                 return dodeca;
                 break;
             case 'icosahedron':
-                var color1 = xcolors.confOrRandom( conf );
                 var scl = conf.scale ? conf.scale : 1;
                 var icosa = new THREE.Mesh();
-                icosa.add( new THREE.Mesh(
-                    new THREE.IcosahedronGeometry( 2.7 ),
-                    new THREE.MeshPhongMaterial({ color: color1, shininess: 60, side: THREE.DoubleSide, flatShading: true })
-                ) );
+                icosa.add( this.buildPrimitive( new THREE.IcosahedronGeometry( 2.7 ), conf, { flatShading: true } ) );
                 icosa.scale.set( scl, scl, scl );
                 return icosa;
                 break;
             case 'capsule':
-                var color1 = xcolors.confOrRandom( conf );
                 var scl = conf.scale ? conf.scale : 1;
                 var capsule = new THREE.Mesh();
-                capsule.add( new THREE.Mesh(
-                    new THREE.CapsuleGeometry( 1.6, 2.6, 8, 18 ),
-                    new THREE.MeshPhongMaterial({ color: color1, shininess: 60, side: THREE.DoubleSide })
-                ) );
+                capsule.add( this.buildPrimitive( new THREE.CapsuleGeometry( 1.6, 2.6, 8, 18 ), conf ) );
                 capsule.scale.set( scl, scl, scl );
                 return capsule;
                 break;
             case 'ring':
-                var color1 = xcolors.confOrRandom( conf );
                 var scl = conf.scale ? conf.scale : 1;
                 var ringshape = new THREE.Mesh();
-                ringshape.add( new THREE.Mesh(
-                    new THREE.RingGeometry( 1.5, 2.8, 40 ),
-                    new THREE.MeshPhongMaterial({ color: color1, shininess: 60, side: THREE.DoubleSide })
-                ) );
+                ringshape.add( this.buildPrimitive( new THREE.RingGeometry( 1.5, 2.8, 40 ), conf ) );
                 ringshape.scale.set( scl, scl, scl );
                 return ringshape;
                 break;
