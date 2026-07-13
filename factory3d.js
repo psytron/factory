@@ -238,6 +238,82 @@ class Factory3d {
         });
     }
 
+    // Brand-wrapped little sphere (finding subnodes, etc.). Same brand PNG
+    // path tools use (media/domain/{brand}.png), mapped onto SphereGeometry UVs.
+    // Async like renderObject so the texture can finish before the icon is added.
+    renderWrappedSphere( conf = {} ){
+        var group = new THREE.Group();
+        group.name = 'wrapped_sphere';
+
+        var diam = ( conf.weight != null && conf.weight !== '' )
+            ? Number( conf.weight )
+            : 0.62;
+        if( !( diam > 0 ) ){ diam = 0.62; }
+        var segs = conf.segments != null ? Number( conf.segments ) : 28;
+        if( !( segs >= 8 ) ){ segs = 28; }
+
+        var color1 = xcolors.confOrRandom( conf );
+        var geo = new THREE.SphereGeometry( diam, segs, segs );
+        var mat = new THREE.MeshBasicMaterial({
+            color: 0xffffff,
+            map: null,
+        });
+        // Fallback tint until / if the brand map lands.
+        mat.color.set( color1 );
+        var sphere = new THREE.Mesh( geo, mat );
+        sphere.name = 'wrapped_sphere_skin';
+        group.add( sphere );
+
+        // Soft hit target so small findings stay easy to click.
+        var hitR = Math.max( diam * 2.4, 1.4 );
+        var hit = new THREE.Mesh(
+            new THREE.SphereGeometry( hitR, 16, 16 ),
+            new THREE.MeshBasicMaterial({
+                color: color1,
+                transparent: true,
+                opacity: 0.08,
+                depthWrite: false,
+            })
+        );
+        hit.name = 'clickableDot';
+        hit.userData.isClickable = true;
+        group.add( hit );
+
+        if( conf.baseplane ){
+            group.add( this.createBasePlane() );
+        }
+
+        var img = conf.img || null;
+        if( !img && conf.brand ){
+            img = 'media/domain/' + String( conf.brand ).toLowerCase() + '.png';
+        }
+        if( !img ){
+            return Promise.resolve( group );
+        }
+
+        // Separate cache key: SphereGeometry UVs want flipY=true; GLTF skins use false.
+        var cacheKey = String( img ) + '|sphere';
+        var self = this;
+        var texPromise = this.textures[ cacheKey ];
+        if( !texPromise ){
+            texPromise = this.textures[ cacheKey ] = new Promise( function( resolve, reject ){
+                self.tloader.load( img, function( texture ){
+                    texture.flipY = true;
+                    texture.colorSpace = THREE.SRGBColorSpace;
+                    resolve( texture );
+                }, undefined, reject );
+            });
+        }
+        return texPromise.then( function( tex ){
+            mat.map = tex;
+            mat.color.set( 0xffffff );
+            mat.needsUpdate = true;
+            return group;
+        }, function(){
+            return group;
+        });
+    }
+
     getCloneV2( identifier_in , conf={ } ){
         
         if (this.meshFactory[identifier_in]) {
@@ -1302,6 +1378,47 @@ class Factory3d {
                 }
                 spikeball.scale.set( scl, scl, scl );
                 return spikeball;
+                break;
+            // Little brand-wrapped sphere (sync shell). Prefer renderWrappedSphere()
+            // when a brand PNG should finish loading before the icon is attached.
+            case 'wrapped_sphere':
+                var wrap = new THREE.Group();
+                wrap.name = 'wrapped_sphere';
+                var wDiam = ( conf.weight != null && conf.weight !== '' ) ? Number( conf.weight ) : 0.62;
+                if( !( wDiam > 0 ) ){ wDiam = 0.62; }
+                var wColor = xcolors.confOrRandom( conf );
+                var wMat = new THREE.MeshBasicMaterial({ color: wColor });
+                var wSphere = new THREE.Mesh(
+                    new THREE.SphereGeometry( wDiam, 28, 28 ),
+                    wMat
+                );
+                wSphere.name = 'wrapped_sphere_skin';
+                wrap.add( wSphere );
+                // Kick off brand skin asynchronously if a path / brand is present.
+                var wImg = conf.img || null;
+                if( !wImg && conf.brand ){
+                    wImg = 'media/domain/' + String( conf.brand ).toLowerCase() + '.png';
+                }
+                if( wImg ){
+                    var wKey = String( wImg ) + '|sphere';
+                    var wSelf = this;
+                    var wTexP = this.textures[ wKey ];
+                    if( !wTexP ){
+                        wTexP = this.textures[ wKey ] = new Promise( function( resolve, reject ){
+                            wSelf.tloader.load( wImg, function( texture ){
+                                texture.flipY = true;
+                                texture.colorSpace = THREE.SRGBColorSpace;
+                                resolve( texture );
+                            }, undefined, reject );
+                        });
+                    }
+                    wTexP.then( function( tex ){
+                        wMat.map = tex;
+                        wMat.color.set( 0xffffff );
+                        wMat.needsUpdate = true;
+                    }, function(){ /* keep tinted sphere */ } );
+                }
+                return wrap;
                 break;
             default:
                 // If identifier does not match any above case, use renderObject to render the mesh and return it
